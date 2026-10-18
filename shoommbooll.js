@@ -525,7 +525,7 @@ export default {
 			}
 			return 反代响应;
 		} catch (error) { }
-		return new Response(await nginx(), { status: 200, headers: { 'Content-Type': 'text/html; charset=UTF-8' } });
+		return new Response(await ak(), { status: 200, headers: { 'Content-Type': 'text/html; charset=UTF-8' } });
 	}
 };
 ///////////////////////////////////////////////////////////////////////叉HTTP传输数据///////////////////////////////////////////////
@@ -6521,8 +6521,7 @@ async function 解析地址端口(proxyIP, 目标域名 = 'dash.cloudflare.com',
 	return 解析结果;
 }
 
-//////////////////////////////////////////////////////HTML伪装页面///////////////////////////////////////////////
-async function nginx() {
+async function ak() {
 	return `
 	<!DOCTYPE html>
 	<html>
@@ -6551,7 +6550,6 @@ async function nginx() {
 	</html>
 	`
 }
-
 async function aa(ab, ac) {
 	const ad = new Date();
 	const ag = ad.getFullYear() + '-' + String(ad.getMonth() + 1).padStart(2, '0') + '-' + String(ad.getDate()).padStart(2, '0') + ' ' + String(ad.getHours()).padStart(2, '0') + ':' + String(ad.getMinutes()).padStart(2, '0') + ':' + String(ad.getSeconds()).padStart(2, '0');
@@ -6643,7 +6641,6 @@ async function aa(ab, ac) {
 </body>
 </html>`;
 }
-
 /*
 ### Shoommbooll: The Unreasonably Powerful Little Idiot
 
