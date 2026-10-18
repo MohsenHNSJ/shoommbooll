@@ -33,7 +33,7 @@ export default {
 		const uuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/;
 		const envUUID = env.UUID || env.uuid;
 		const userID = (envUUID && uuidRegex.test(envUUID)) ? envUUID.toLowerCase() : [userIDMD5.slice(0, 8), userIDMD5.slice(8, 12), '4' + userIDMD5.slice(13, 16), '8' + userIDMD5.slice(17, 20), userIDMD5.slice(20)].join('-');
-		const hosts = env.HOST ? (await 整理成数组(env.HOST)).map(h => h.toLowerCase().replace(/^https?:\/\//, '').split('/')[0].split(':')[0]) : [url.hostname];
+		const hosts = env.HOST ? (await ala(env.HOST)).map(h => h.toLowerCase().replace(/^https?:\/\//, '').split('/')[0].split(':')[0]) : [url.hostname];
 		const host = hosts[0];
 		const 访问路径 = url.pathname.slice(1).toLowerCase();
 		调试日志打印 = ['1', 'true'].includes(env.DEBUG) || 调试日志打印;
@@ -43,14 +43,14 @@ export default {
 		if (!env.TCP_CONCURRENT_DIAL && TCP并发拨号数 !== 1 && 识别运营商(request) === 'cmcc') TCP并发拨号数 = 1;
 		let 默认反代IP = (`${request.cf.colo}.${特征码字典[0]}.${特征码字典[1]}SsSs.nEt`).toLowerCase(), 默认反代兜底 = true;
 		if (env.PROXYIP) {
-			const proxyIPs = await 整理成数组(env.PROXYIP);
+			const proxyIPs = await ala(env.PROXYIP);
 			默认反代IP = proxyIPs[Math.floor(Math.random() * proxyIPs.length)];
 			默认反代兜底 = false;
 		};
 		const 访问IP = request.headers.get('CF-Connecting-IP') || request.headers.get('True-Client-IP') || request.headers.get('X-Real-IP') || request.headers.get('X-Forwarded-For') || request.headers.get('Fly-Client-IP') || request.headers.get('X-Appengine-Remote-Addr') || request.headers.get('X-Cluster-Client-IP') || '未知IP';
 		const [本机标识头, 本机标识键] = 获取本机标识(userID);
 		if (缓存SOCKS5白名单 === null) {
-			if (env.GO2SOCKS5) SOCKS5白名单 = [...new Set(SOCKS5白名单.concat(await 整理成数组(env.GO2SOCKS5)))];
+			if (env.GO2SOCKS5) SOCKS5白名单 = [...new Set(SOCKS5白名单.concat(await ala(env.GO2SOCKS5)))];
 			缓存SOCKS5白名单 = SOCKS5白名单;
 		} else SOCKS5白名单 = 缓存SOCKS5白名单;
 		if (访问路径 === 'version') {// 版本信息接口
@@ -356,7 +356,7 @@ export default {
 							if (!url.searchParams.has('sub') && config_JSON.优选订阅生成.local) { // 本地生成订阅
 								const 完整优选列表 = config_JSON.优选订阅生成.本地IP库.随机IP ? (
 									await 生成随机IP(request, config_JSON.优选订阅生成.本地IP库.随机数量, config_JSON.优选订阅生成.本地IP库.指定端口)
-								)[0] : await env.KV.get('ADD.txt') ? await 整理成数组(await env.KV.get('ADD.txt')) : (
+								)[0] : await env.KV.get('ADD.txt') ? await ala(await env.KV.get('ADD.txt')) : (
 									await 生成随机IP(request, config_JSON.优选订阅生成.本地IP库.随机数量, config_JSON.优选订阅生成.本地IP库.指定端口)
 								)[0];
 								const 优选API = [], 优选IP = [], 其他节点 = [];
@@ -2266,8 +2266,8 @@ async function forwardataTCP(host, portNum, rawData, ws, respHeader, remoteConnW
 		if (!预加载竞速拨号 || isIPHostname(address)) return null;
 		log(`[TCP直连] 预加载竞速拨号开启，开始并发查询 ${address} 的 A/AAAA 记录`);
 		const [aRecords, aaaaRecords] = await Promise.all([
-			DoH查询(address, 'A'),
-			DoH查询(address, 'AAAA')
+			ado(address, 'A'),
+			ado(address, 'AAAA')
 		]);
 		const ipv4List = [...new Set(aRecords.flatMap(r => {
 			const data = r.data;
@@ -2404,7 +2404,7 @@ async function forwardataTCP(host, portNum, rawData, ws, respHeader, remoteConnW
 					}
 				} else {
 					log(`[反代连接] 代理到: ${host}:${portNum}`);
-					const 所有反代数组 = await 解析地址端口(ctx反代IP, host, yourUUID);
+					const 所有反代数组 = await al(ctx反代IP, host, yourUUID);
 					newSocket = await connectProxyIP(`${特征码字典[0]}.tp1.${特征码字典[2]}.xyz`, 1, 本次首包数据, 所有反代数组, ctx反代兜底);
 				}
 				await 安装当前连接(newSocket, 当前连接世代, downlinkDrain);
@@ -4150,7 +4150,7 @@ async function turnConnect(proxy, targetHost, targetPort, TCP连接) {
 	/** @type {string | null} */
 	let targetIp = isIPv4(resolvedTargetHost) ? resolvedTargetHost : null;
 	if (!targetIp) {
-		const records = await DoH查询(resolvedTargetHost, 'A');
+		const records = await ado(resolvedTargetHost, 'A');
 		const recordData = records.find(item => item.type === 1 && isIPv4(item.data))?.data;
 		targetIp = typeof recordData === 'string' ? recordData : null;
 	}
@@ -4569,7 +4569,7 @@ async function sstpConnect(proxy, targetHost, targetPort, TCP连接) {
 		/** @type {string | null} */
 		let targetIp = isIPv4(target) ? target : null;
 		if (!targetIp) {
-			const records = await DoH查询(target, 'A');
+			const records = await ado(target, 'A');
 			const recordData = records.find(item => item.type === 1 && isIPv4(item.data))?.data;
 			targetIp = typeof recordData === 'string' ? recordData : null;
 		}
@@ -5435,7 +5435,7 @@ function 替换星号为随机字符(内容) {
 const DoH缓存 = {};
 const DoH缓存最大条目 = 256;
 const DoH记录类型映射 = { A: 1, NS: 2, CNAME: 5, MX: 15, TXT: 16, AAAA: 28, SRV: 33, HTTPS: 65 };
-async function DoH查询(域名, 记录类型, DoH解析服务 = "https://cloudflare-dns.com/dns-query") {
+async function ado(域名, 记录类型, DoH解析服务 = "https://cloudflare-dns.com/dns-query") {
 	const 规范化域名 = String(域名 || '').trim().toLowerCase().replace(/\.$/, '');
 	const 规范化记录类型 = String(记录类型 || '').trim().toUpperCase();
 	const 缓存键 = `${规范化域名}:${规范化记录类型}`;
@@ -5722,7 +5722,7 @@ async function 读取config_JSON(env, hostname, userID, UA = "Mozilla/5.0", 重�
 	if (!config_JSON.gRPCUserAgent) config_JSON.gRPCUserAgent = UA;
 	config_JSON.HOST = host;
 	if (!config_JSON.HOSTS) config_JSON.HOSTS = [hostname];
-	if (env.HOST) config_JSON.HOSTS = (await 整理成数组(env.HOST)).map(h => h.toLowerCase().replace(/^https?:\/\//, '').split('/')[0].split(':')[0]);
+	if (env.HOST) config_JSON.HOSTS = (await ala(env.HOST)).map(h => h.toLowerCase().replace(/^https?:\/\//, '').split('/')[0].split(':')[0]);
 	config_JSON.UUID = userID;
 	if (!config_JSON.随机路径) config_JSON.随机路径 = false;
 	if (!config_JSON.启用0RTT) config_JSON.启用0RTT = false;
@@ -5889,7 +5889,7 @@ async function 生成随机IP(request, count = 16, 指定端口 = -1) {
 	const cfname = 运营商名称映射[运营商文件标识] || 'CF官方优选';
 	const cfport = [443, 2053, 2083, 2087, 2096, 8443];
 	let cidrList = [];
-	try { const res = await fetch(cidr_url); cidrList = res.ok ? await 整理成数组(await res.text()) : ['104.16.0.0/13'] } catch { cidrList = ['104.16.0.0/13'] }
+	try { const res = await fetch(cidr_url); cidrList = res.ok ? await ala(await res.text()) : ['104.16.0.0/13'] } catch { cidrList = ['104.16.0.0/13'] }
 
 	const generateRandomIPFromCIDR = (cidr) => {
 		const [baseIP, prefixLength] = cidr.split('/'), prefix = parseInt(prefixLength), hostBits = 32 - prefix;
@@ -5908,12 +5908,12 @@ async function 生成随机IP(request, count = 16, 指定端口 = -1) {
 	return [randomIPs, randomIPs.join('\n')];
 }
 
-async function 整理成数组(内容) {
-	var 替换后的内容 = 内容.replace(/[	"'\r\n]+/g, ',').replace(/,+/g, ',');
-	if (替换后的内容.charAt(0) == ',') 替换后的内容 = 替换后的内容.slice(1);
-	if (替换后的内容.charAt(替换后的内容.length - 1) == ',') 替换后的内容 = 替换后的内容.slice(0, 替换后的内容.length - 1);
-	const 地址数组 = 替换后的内容.split(',');
-	return 地址数组;
+async function ala(alb) {
+	var ale = alb.replace(/[	"'\r\n]+/g, ',').replace(/,+/g, ',');
+	if (ale.charAt(0) == ',') ale = ale.slice(1);
+	if (ale.charAt(ale.length - 1) == ',') ale = ale.slice(0, ale.length - 1);
+	const ali = ale.split(',');
+	return ali;
 }
 
 async function 获取优选订阅生成器数据(优选订阅生成器HOST, uid = "000000") {
@@ -6436,91 +6436,83 @@ function sha224(s) {
 	}
 	return hex;
 }
-
-async function 解析地址端口(proxyIP, 目标域名 = 'dash.cloudflare.com', UUID = '00000000-0000-4000-8000-000000000000') {
-	proxyIP = proxyIP.toLowerCase();
-	function 解析地址端口字符串(str) {
-		let 地址 = str, 端口 = 443;
-		if (str.includes(']:')) {
-			const parts = str.split(']:');
-			地址 = parts[0] + ']';
-			端口 = parseInt(parts[1], 10) || 端口;
-		} else if ((str.match(/:/g) || []).length === 1 && !str.startsWith('[')) {
-			const colonIndex = str.lastIndexOf(':');
-			地址 = str.slice(0, colonIndex);
-			端口 = parseInt(str.slice(colonIndex + 1), 10) || 端口;
+async function al(am, an = 'dash.cloudflare.com', ar = '00000000-0000-4000-8000-000000000000') {
+	am = am.toLowerCase();
+	function at(av) {
+		let au = av, ax = 443;
+		if (av.includes(']:')) {
+			const az = av.split(']:');
+			au = az[0] + ']';
+			ax = parseInt(az[1], 10) || ax;
+		} else if ((av.match(/:/g) || []).length === 1 && !av.startsWith('[')) {
+			const aaa = av.lastIndexOf(':');
+			au = av.slice(0, aaa);
+			ax = parseInt(av.slice(aaa + 1), 10) || ax;
 		}
-		return [地址, 端口];
+		return [au, ax];
 	}
-
-	function 解析TXT反代记录(txtData) {
-		return txtData.flatMap(data => {
-			if (data.startsWith('"') && data.endsWith('"')) data = data.slice(1, -1);
-			return data.replace(/\\010/g, ',').replace(/\n/g, ',').split(',').map(s => s.trim()).filter(Boolean);
-		}).map(prefix => 解析地址端口字符串(prefix));
+	function aah(aar) {
+		return aar.flatMap(aas => {
+			if (aas.startsWith('"') && aas.endsWith('"')) aas = aas.slice(1, -1);
+			return aas.replace(/\\010/g, ',').replace(/\n/g, ',').split(',').map(s => s.trim()).filter(Boolean);
+		}).map(aba => at(aba));
 	}
+	const abb = await ala(am);
+	let abc = [];
+	const abm = /^(25[0-5]|2[0-4]\d|[01]?\d\d?)\.(25[0-5]|2[0-4]\d|[01]?\d\d?)\.(25[0-5]|2[0-4]\d|[01]?\d\d?)\.(25[0-5]|2[0-4]\d|[01]?\d\d?)$/;
+	const abs = /^\[?(?:[a-fA-F0-9]{0,4}:){1,7}[a-fA-F0-9]{0,4}\]?$/;
+	for (const aby of abb) {
+		let [acc, ace] = at(aby);
 
-	const 反代IP数组 = await 整理成数组(proxyIP);
-	let 所有反代数组 = [];
-	const ipv4Regex = /^(25[0-5]|2[0-4]\d|[01]?\d\d?)\.(25[0-5]|2[0-4]\d|[01]?\d\d?)\.(25[0-5]|2[0-4]\d|[01]?\d\d?)\.(25[0-5]|2[0-4]\d|[01]?\d\d?)$/;
-	const ipv6Regex = /^\[?(?:[a-fA-F0-9]{0,4}:){1,7}[a-fA-F0-9]{0,4}\]?$/;
-
-	// 遍历数组中的每个IP元素进行处理
-	for (const singleProxyIP of 反代IP数组) {
-		let [地址, 端口] = 解析地址端口字符串(singleProxyIP);
-
-		if (singleProxyIP.includes('.tp')) {
-			const tpMatch = singleProxyIP.match(/\.tp(\d+)/);
-			if (tpMatch) 端口 = parseInt(tpMatch[1], 10);
+		if (aby.includes('.tp')) {
+			const act = aby.match(/\.tp(\d+)/);
+			if (act) ace = parseInt(act[1], 10);
 		}
-
-		// 判断是否是域名（非IP地址）
-		if (ipv4Regex.test(地址) || ipv6Regex.test(地址)) {
-			log(`[反代解析] ${地址} 为IP地址，直接使用`);
-			所有反代数组.push([地址, 端口]);
+		if (abm.test(acc) || abs.test(acc)) {
+			log(`[ada] ${acc} Use directly`);
+			abc.push([acc, ace]);
 			continue;
 		}
 
-		const [txtRecords, aRecords] = await Promise.all([
-			DoH查询(地址, 'TXT'),
-			DoH查询(地址, 'A')
+		const [ade, adh] = await Promise.all([
+			ado(acc, 'TXT'),
+			ado(acc, 'A')
 		]);
 
-		const txtData = txtRecords.filter(r => r.type === 16).map(r => (r.data));
-		const txtAddresses = 解析TXT反代记录(txtData);
-		if (txtAddresses.length > 0) {
-			log(`[反代解析] ${地址} 使用TXT记录，共${txtAddresses.length}个结果`);
-			所有反代数组.push(...txtAddresses);
+		const adp = ade.filter(r => r.type === 16).map(r => (r.data));
+		const adz = aah(adp);
+		if (adz.length > 0) {
+			log(`[aec] ${acc} Text ${adz.length}`);
+			abc.push(...adz);
 			continue;
 		}
 
-		const ipv4List = aRecords.filter(r => r.type === 1).map(r => r.data);
-		if (ipv4List.length > 0) {
-			log(`[反代解析] ${地址} 未获取到TXT记录，使用A记录，共${ipv4List.length}个结果`);
-			所有反代数组.push(...ipv4List.map(ip => [ip, 端口]));
+		const afl = adh.filter(r => r.type === 1).map(r => r.data);
+		if (afl.length > 0) {
+			log(`[afp] ${acc} ${afl.length}`);
+			abc.push(...afl.map(ip => [ip, ace]));
 			continue;
 		}
 
-		const aaaaRecords = await DoH查询(地址, 'AAAA');
-		const ipv6List = aaaaRecords.filter(r => r.type === 28).map(r => `[${r.data}]`);
-		if (ipv6List.length > 0) {
-			log(`[反代解析] ${地址} 未获取到TXT和A记录，使用AAAA记录，共${ipv6List.length}个结果`);
-			所有反代数组.push(...ipv6List.map(ip => [ip, 端口]));
+		const aft = await ado(acc, 'AAAA');
+		const aga = aft.filter(r => r.type === 28).map(r => `[${r.data}]`);
+		if (aga.length > 0) {
+			log(`[] ${acc} ${aga.length}`);
+			abc.push(...aga.map(age => [age, ace]));
 		} else {
-			log(`[反代解析] ${地址} 未获取到TXT、A和AAAA记录，保留原域名`);
-			所有反代数组.push([地址, 端口]);
+			log(`[] ${acc}`);
+			abc.push([acc, ace]);
 		}
 	}
-	const 排序后数组 = 所有反代数组.sort((a, b) => a[0].localeCompare(b[0]));
-	const 目标根域名 = 目标域名.includes('.') ? 目标域名.split('.').slice(-2).join('.') : 目标域名;
-	let 随机种子 = [...(目标根域名 + UUID)].reduce((a, c) => a + c.charCodeAt(0), 0);
-	log(`[反代解析] 随机种子: ${随机种子}\n目标站点: ${目标根域名}`)
-	const 洗牌后 = [...排序后数组].sort(() => (随机种子 = (随机种子 * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff - 0.5);
-	const 解析结果 = 洗牌后.slice(0, 8);
-	log(`[反代解析] 解析完成 总数: ${解析结果.length}个\n${解析结果.map(([ip, port], index) => `${index + 1}. ${ip}:${port}`).join('\n')}`);
-	return 解析结果;
+	const ago = abc.sort((a, b) => a[0].localeCompare(b[0]));
+	const aid = an.includes('.') ? an.split('.').slice(-2).join('.') : an;
+	let ail = [...(aid + ar)].reduce((a, c) => a + c.charCodeAt(0), 0);
+	log(`[] ${ail} ${aid}`)
+	const aim = [...ago].sort(() => (ail = (ail * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff - 0.5);
+	const ain = aim.slice(0, 8);
+	log(`[] ${ain.length}个\n${ain.map(([air, aim], aku) => `${aku + 1}. ${air}:${aim}`).join('\n')}`);
+	return ain;
 }
-
 async function ak() {
 	return `
 	<!DOCTYPE html>
