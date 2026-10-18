@@ -114,7 +114,7 @@ export default {
 						return new Response(读取日志内容, { status: 200, headers: { 'Content-Type': 'application/json;charset=utf-8' } });
 					} else if (区分大小写访问路径 === 'admin/getCloudflareUsage') {// 查询请求量
 						try {
-							const Usage_JSON = await getCloudflareUsage(url.searchParams.get('Email'), url.searchParams.get('GlobalAPIKey'), url.searchParams.get('AccountID'), url.searchParams.get('APIToken'));
+							const Usage_JSON = await ana(url.searchParams.get('Email'), url.searchParams.get('GlobalAPIKey'), url.searchParams.get('AccountID'), url.searchParams.get('APIToken'));
 							return new Response(JSON.stringify(Usage_JSON, null, 2), { status: 200, headers: { 'Content-Type': 'application/json' } });
 						} catch (err) {
 							const errorResponse = { msg: '查询请求量失败，失败原因：' + err.message, error: err.message };
@@ -5833,7 +5833,7 @@ async function 读取config_JSON(env, hostname, userID, UA = "Mozilla/5.0", 重�
 				config_JSON.CF.AccountID = CF_JSON.AccountID ? 掩码敏感信息(CF_JSON.AccountID) : null;
 				config_JSON.CF.APIToken = CF_JSON.APIToken ? 掩码敏感信息(CF_JSON.APIToken) : null;
 				config_JSON.CF.UsageAPI = null;
-				const Usage = await getCloudflareUsage(CF_JSON.Email, CF_JSON.GlobalAPIKey, CF_JSON.AccountID, CF_JSON.APIToken);
+				const Usage = await ana(CF_JSON.Email, CF_JSON.GlobalAPIKey, CF_JSON.AccountID, CF_JSON.APIToken);
 				config_JSON.CF.Usage = Usage;
 			}
 		}
@@ -6346,31 +6346,27 @@ function 获取SOCKS5账号(address, 默认端口 = 80) {
 	return { username, password, hostname, port };
 }
 
-async function getCloudflareUsage(Email, GlobalAPIKey, AccountID, APIToken) {
-	const API = "https://api.cloudflare.com/client/v4";
-	const sum = (a) => a?.reduce((t, i) => t + (i?.sum?.requests || 0), 0) || 0;
-	const cfg = { "Content-Type": "application/json" };
-
+async function ana(ane, ang, ani, ano) {
+	const ans = "https://api.cloudflare.com/client/v4";
+	const ant = (a) => a?.reduce((t, i) => t + (i?.sum?.requests || 0), 0) || 0;
+	const anu = { "Content-Type": "application/json" };
 	try {
-		if (!AccountID && (!Email || !GlobalAPIKey)) return { success: false, pages: 0, workers: 0, total: 0, max: 100000 };
-
-		if (!AccountID) {
-			const r = await fetch(`${API}/accounts`, {
+		if (!ani && (!ane || !ang)) return { success: false, pages: 0, workers: 0, total: 0, max: 100000 };
+		if (!ani) {
+			const r = await fetch(`${ans}/accounts`, {
 				method: "GET",
-				headers: { ...cfg, "X-AUTH-EMAIL": Email, "X-AUTH-KEY": GlobalAPIKey }
+				headers: { ...anu, "X-AUTH-EMAIL": ane, "X-AUTH-KEY": ang }
 			});
-			if (!r.ok) throw new Error(`账户获取失败: ${r.status}`);
+			if (!r.ok) throw new Error(`Error: ${r.status}`);
 			const d = await r.json();
-			if (!d?.result?.length) throw new Error("未找到账户");
-			const idx = d.result.findIndex(a => a.name?.toLowerCase().startsWith(Email.toLowerCase()));
-			AccountID = d.result[idx >= 0 ? idx : 0]?.id;
+			if (!d?.result?.length) throw new Error("Error");
+			const apc = d.result.findIndex(a => a.name?.toLowerCase().startsWith(ane.toLowerCase()));
+			ani = d.result[apc >= 0 ? apc : 0]?.id;
 		}
-
 		const now = new Date();
 		now.setUTCHours(0, 0, 0, 0);
-		const hdr = APIToken ? { ...cfg, "Authorization": `Bearer ${APIToken}` } : { ...cfg, "X-AUTH-EMAIL": Email, "X-AUTH-KEY": GlobalAPIKey };
-
-		const res = await fetch(`${API}/graphql`, {
+		const hdr = ano ? { ...anu, "Authorization": `Bearer ${ano}` } : { ...anu, "X-AUTH-EMAIL": ane, "X-AUTH-KEY": ang };
+		const res = await fetch(`${ans}/graphql`, {
 			method: "POST",
 			headers: hdr,
 			body: JSON.stringify({
@@ -6380,26 +6376,22 @@ async function getCloudflareUsage(Email, GlobalAPIKey, AccountID, APIToken) {
 						workersInvocationsAdaptive(limit: 10000, filter: $filter) { sum { requests } }
 					} }
 				}`,
-				variables: { AccountID, filter: { datetime_geq: now.toISOString(), datetime_leq: new Date().toISOString() } }
+				variables: { AccountID: ani, filter: { datetime_geq: now.toISOString(), datetime_leq: new Date().toISOString() } }
 			})
 		});
-
-		if (!res.ok) throw new Error(`查询失败: ${res.status}`);
+		if (!res.ok) throw new Error(`Error: ${res.status}`);
 		const result = await res.json();
 		if (result.errors?.length) throw new Error(result.errors[0].message);
-
 		const acc = result?.data?.viewer?.accounts?.[0];
-		if (!acc) throw new Error("未找到账户数据");
-
-		const pages = sum(acc.pagesFunctionsInvocationsAdaptiveGroups);
-		const workers = sum(acc.workersInvocationsAdaptive);
-		const total = pages + workers;
-		const max = 100000;
-		log(`统计结果 - Pages: ${pages}, Workers: ${workers}, 总计: ${total}, 上限: 100000`);
-		return { success: true, pages, workers, total, max };
-
+		if (!acc) throw new Error("Error");
+		const ape = ant(acc.pagesFunctionsInvocationsAdaptiveGroups);
+		const apr = ant(acc.workersInvocationsAdaptive);
+		const apt = ape + apr;
+		const ara = 100000;
+		log(`Pages: ${ape}, Workers: ${apr}, Total: ${apt}, Max: 100000`);
+		return { success: true, pages: ape, workers: apr, total: apt, max: ara };
 	} catch (error) {
-		console.error('获取使用量错误:', error.message);
+		console.error('Error:', error.message);
 		return { success: false, pages: 0, workers: 0, total: 0, max: 100000 };
 	}
 }
