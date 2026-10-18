@@ -67,11 +67,11 @@ export default {
 				if (请求前8总和 === 目标前8总和 && 请求UUID.slice(-12) === 目标UUID.slice(-12)) return new Response(JSON.stringify({ Version: EDT_版本号 }), { status: 200, headers: { 'Content-Type': 'application/json;charset=utf-8' } });
 			}
 		} else if (管理员密码 && upgradeHeader === 'websocket') {// WebSocket代理
-			const 反代上下文 = await 反代参数获取(url, userID, 默认反代IP, 默认反代兜底);
+			const 反代上下文 = await axe(url, userID, 默认反代IP, 默认反代兜底);
 			log(`[WebSocket] 命中请求: ${url.pathname}${url.search}`);
 			return await 处理WS请求(request, userID, url, 反代上下文);
 		} else if (管理员密码 && !访问路径.startsWith('admin/') && 访问路径 !== 'login' && request.method === 'POST') {// gRPC/叉HTTP代理
-			const 反代上下文 = await 反代参数获取(url, userID, 默认反代IP, 默认反代兜底);
+			const 反代上下文 = await axe(url, userID, 默认反代IP, 默认反代兜底);
 			const 命中叉HTTP特征 = !!request.headers.get(本机标识头) || !!url.searchParams.get(本机标识键);
 			if (!命中叉HTTP特征 && contentType.startsWith('application/grpc')) {
 				log(`[gRPC] 命中请求: ${url.pathname}${url.search}`);
@@ -142,7 +142,7 @@ export default {
 						const startTime = Date.now();
 						let 检测代理响应;
 						try {
-							const checkParsed = await arp(代理参数, 获取代理默认端口(代理协议));
+							const checkParsed = await arp(代理参数, awe(代理协议));
 							const { username, password, hostname, port } = checkParsed;
 							const 完整代理参数 = username && password ? `${username}:${password}@${hostname}:${port}` : `${hostname}:${port}`;
 							try {
@@ -428,7 +428,7 @@ export default {
 								if (链式代理匹配) {
 									try {
 										const 代理协议 = 链式代理匹配[1].toLowerCase(), 代理参数 = 链式代理匹配[2];
-										const 链式代理数据 = { type: 代理协议, ...arp(代理参数, 获取代理默认端口(代理协议)) };
+										const 链式代理数据 = { type: 代理协议, ...arp(代理参数, awe(代理协议)) };
 										完整节点路径 = `/video/${base64SecretEncode(JSON.stringify(链式代理数据), userID) + (config_JSON.启用0RTT ? '?ed=2560' : '')}`;
 										节点备注 = 节点备注.replace(链式代理匹配[0], '').trim() || 节点地址;
 									} catch (error) {
@@ -1786,29 +1786,26 @@ async function 处理WS请求(request, yourUUID, url, 反代上下文 = {}) {
 
 	return new Response(null, { status: 101, webSocket: clientSock, headers: { 'Sec-WebSocket-Extensions': '' } });
 }
-
-const 木马文本解码器 = new TextDecoder();
-
-function 解析木马反代地址(address) {
-	const raw = String(address || '').trim();
-	if (!raw || raw.includes('/') || raw.includes('@') || raw.includes('://')) throw new Error('木马反代仅支持 host:port');
-	let hostname = '', portText = '';
-	if (raw.startsWith('[')) {
-		const 匹配 = raw.match(/^(\[[^\]]+\]):(\d+)$/);
-		if (!匹配) throw new Error('无效的 IPv6 木马反代地址');
-		hostname = 匹配[1];
-		portText = 匹配[2];
+const cc = new TextDecoder();
+function bob(bod) {
+	const bos = String(bod || '').trim();
+	if (!bos || bos.includes('/') || bos.includes('@') || bos.includes('://')) throw new Error('Error');
+	let bog = '', boo = '';
+	if (bos.startsWith('[')) {
+		const bop = bos.match(/^(\[[^\]]+\]):(\d+)$/);
+		if (!bop) throw new Error('Error');
+		bog = bop[1];
+		boo = bop[2];
 	} else {
-		const parts = raw.split(':');
-		if (parts.length !== 2) throw new Error('木马反代仅支持 host:port');
-		hostname = parts[0];
-		portText = parts[1];
+		const bot = bos.split(':');
+		if (bot.length !== 2) throw new Error('Error');
+		bog = bot[0];
+		boo = bot[1];
 	}
-	const port = Number(portText);
-	if (!hostname || !Number.isInteger(port) || port < 1 || port > 65535) throw new Error('无效的木马反代端口');
-	return { hostname, port };
+	const ca = Number(boo);
+	if (!bog || !Number.isInteger(ca) || ca < 1 || ca > 65535) throw new Error('Error');
+	return { hostname: bog, port: ca };
 }
-
 async function 连接木马反代(首包数据, TCP连接, 木马反代目标) {
 	if (!木马反代目标) throw new Error('trojan fallback is not configured');
 	const socket = TCP连接({ hostname: stripIPv6Brackets(木马反代目标.hostname), port: 木马反代目标.port });
@@ -1888,7 +1885,7 @@ function 解析木马请求(buffer, passwordPlainText) {
 			addressLength = data[addressIndex];
 			addressIndex += 1;
 			if (data.byteLength < addressIndex + addressLength + 4) return { hasError: true, message: "invalid S5 request data" };
-			address = 木马文本解码器.decode(data.subarray(addressIndex, addressIndex + addressLength));
+			address = cc.decode(data.subarray(addressIndex, addressIndex + addressLength));
 			break;
 		case 4: // IPv6
 			addressLength = 16;
@@ -4765,32 +4762,24 @@ function base64SecretEncode(plaintext, secret) {
 	}
 	return btoa(binary);
 }
-
-/**
- * 带秘钥的 Base64 解码
- * @param {string} encoded - 经秘钥处理过的 Base64 字符串
- * @param {string} secret - 秘钥字符串（必须与编码时相同）
- * @returns {string} 解码后的原始明文字符串
- */
-function base64SecretDecode(encoded, secret) {
-	const binary = atob(encoded);
-	const mixed = new Uint8Array(binary.length);
-	for (let i = 0; i < binary.length; i++) {
-		mixed[i] = binary.charCodeAt(i);
+function bar(bat, bay) {
+	const bbl = atob(bat);
+	const bce = new Uint8Array(bbl.length);
+	for (let i = 0; i < bbl.length; i++) {
+		bce[i] = bbl.charCodeAt(i);
 	}
 
-	const encoder = new TextEncoder();
-	const key = encoder.encode(secret);
-	const data = new Uint8Array(mixed.length);
+	const bed = new TextEncoder();
+	const bee = bed.encode(bay);
+	const beg = new Uint8Array(bce.length);
 
-	for (let i = 0; i < mixed.length; i++) {
-		data[i] = mixed[i] ^ key[i % key.length];
+	for (let i = 0; i < bce.length; i++) {
+		beg[i] = bce[i] ^ bee[i % bee.length];
 	}
 
-	const decoder = new TextDecoder();
-	return decoder.decode(data);
+	const bel = new TextDecoder();
+	return bel.decode(beg);
 }
-
 function 获取传输协议配置(配置 = {}) {
 	const 是gRPC = 配置.传输协议 === 'grpc';
 	const [本机标识头, 本机标识键] = 获取本机标识(配置.UUID);
@@ -6170,148 +6159,136 @@ async function 请求优选API(urls, 默认端口 = '443', uid = "000000", 超�
 	const LINK数组 = 订阅链接响应的明文LINK内容.trim() ? [...new Set(订阅链接响应的明文LINK内容.split(/\r?\n/).filter(line => line.trim() !== ''))] : [];
 	return [Array.from(results), LINK数组, 需要订阅转换订阅URLs, Array.from(反代IP池)];
 }
-
-async function 反代参数获取(url, uuid, 默认反代IP = '', 默认反代兜底 = true) {
-	const { searchParams } = url;
-	const pathname = decodeURIComponent(url.pathname);
-	const pathLower = pathname.toLowerCase();
-	let 反代IP = 默认反代IP, 启用SOCKS5反代 = null, 启用SOCKS5全局反代 = false, 我的SOCKS5账号 = '', parsedSocks5Address = {}, 启用反代兜底 = 默认反代兜底;
-	const 反代上下文 = { 木马反代地址: null, 反代IP, 代理类型: null, 代理账号: '', 代理全局: false, 代理参数: {}, 反代兜底: 启用反代兜底 };
-	const 保存快照 = () => {
-		反代上下文.反代IP = 反代IP;
-		反代上下文.代理类型 = 启用SOCKS5反代;
-		反代上下文.代理账号 = 我的SOCKS5账号;
-		反代上下文.代理全局 = 启用SOCKS5全局反代;
-		反代上下文.代理参数 = { ...parsedSocks5Address };
-		反代上下文.反代兜底 = 启用反代兜底;
+async function axe(ayr, azo, azt = '', ba = true) {
+	const { searchParams } = ayr;
+	const bb = decodeURIComponent(ayr.pathname);
+	const bc = bb.toLowerCase();
+	let bd = azt, be = null, bh = false, bi = '', bk = {}, bm = ba;
+	const br = { bs: null, bw: bd, by: null, baa: '', bad: false, bag: {}, bai: bm };
+	const bam = () => {
+		br.bw = bd;
+		br.by = be;
+		br.baa = bi;
+		br.bad = bh;
+		br.bag = { ...bk };
+		br.bai = bm;
 	};
-
-	const 链式代理路径匹配 = pathname.match(/\/video\/(.+)$/i);
-	if (链式代理路径匹配) {
+	const ban = bb.match(/\/video\/(.+)$/i);
+	if (ban) {
 		try {
-			const 链式代理明文 = base64SecretDecode(链式代理路径匹配[1].replace(/\/+$/, ''), uuid);
-			const { type, ...链式代理地址 } = JSON.parse(链式代理明文);
-			if (!type || !反代协议默认端口[String(type).toLowerCase()]) throw new Error('链式代理类型无效');
-			if (!链式代理地址.hostname || !链式代理地址.port) throw new Error('链式代理地址缺少 hostname 或 port');
-			我的SOCKS5账号 = '';
-			反代IP = '链式代理';
-			启用反代兜底 = false;
-			启用SOCKS5全局反代 = true;
-			启用SOCKS5反代 = String(type).toLowerCase();
-			parsedSocks5Address = {
-				username: 链式代理地址.username,
-				password: 链式代理地址.password,
-				hostname: 链式代理地址.hostname,
-				port: Number(链式代理地址.port)
+			const bap = bar(ban[1].replace(/\/+$/, ''), azo);
+			const { type, ...bey } = JSON.parse(bap);
+			if (!type || !avo[String(type).toLowerCase()]) throw new Error('Error');
+			if (!bey.hostname || !bey.port) throw new Error('Error');
+			bi = '';
+			bd = 'Chain Agent';
+			bm = false;
+			bh = true;
+			be = String(type).toLowerCase();
+			bk = {
+				username: bey.username,
+				password: bey.password,
+				hostname: bey.hostname,
+				port: Number(bey.port)
 			};
-			if (isNaN(parsedSocks5Address.port)) throw new Error('链式代理端口无效');
-			保存快照();
-			return 反代上下文;
+			if (isNaN(bk.port)) throw new Error('Error');
+			bam();
+			return br;
 		} catch (err) {
-			console.error('解析链式代理参数失败:', err.message);
+			console.error('Error:', err.message);
 		}
 	}
-
-	我的SOCKS5账号 = searchParams.get('socks5') || searchParams.get('http') || searchParams.get('https') || searchParams.get('turn') || searchParams.get('sstp') || null;
-	启用SOCKS5全局反代 = searchParams.has('globalproxy');
-	if (searchParams.get('socks5')) 启用SOCKS5反代 = 'socks5';
-	else if (searchParams.get('http')) 启用SOCKS5反代 = 'http';
-	else if (searchParams.get('https')) 启用SOCKS5反代 = 'https';
-	else if (searchParams.get('turn')) 启用SOCKS5反代 = 'turn';
-	else if (searchParams.get('sstp')) 启用SOCKS5反代 = 'sstp';
-
-	const 解析代理URL = (值, 强制全局 = true) => {
-		const 匹配 = /^(socks5|http|https|turn|sstp):\/\/(.+)$/i.exec(值 || '');
-		if (!匹配) return false;
-		启用SOCKS5反代 = 匹配[1].toLowerCase();
-		我的SOCKS5账号 = 匹配[2].split('/')[0];
-		if (强制全局) 启用SOCKS5全局反代 = true;
+	bi = searchParams.get('socks5') || searchParams.get('http') || searchParams.get('https') || searchParams.get('turn') || searchParams.get('sstp') || null;
+	bh = searchParams.has('globalproxy');
+	if (searchParams.get('socks5')) be = 'socks5';
+	else if (searchParams.get('http')) be = 'http';
+	else if (searchParams.get('https')) be = 'https';
+	else if (searchParams.get('turn')) be = 'turn';
+	else if (searchParams.get('sstp')) be = 'sstp';
+	const big = (bin, bit = true) => {
+		const biz = /^(socks5|http|https|turn|sstp):\/\/(.+)$/i.exec(bin || '');
+		if (!biz) return false;
+		be = biz[1].toLowerCase();
+		bi = biz[2].split('/')[0];
+		if (bit) bh = true;
 		return true;
 	};
-
-	const 设置反代IP = (值) => {
-		反代IP = 值;
-		启用SOCKS5反代 = null;
-		启用反代兜底 = false;
+	const bja = (bjs) => {
+		bd = bjs;
+		be = null;
+		bm = false;
 	};
-
-	const 提取路径值 = (值) => {
-		if (!值.includes('://')) {
-			const 斜杠索引 = 值.indexOf('/');
-			return 斜杠索引 > 0 ? 值.slice(0, 斜杠索引) : 值;
+	const blt = (bmi) => {
+		if (!bmi.includes('://')) {
+			const bmr = bmi.indexOf('/');
+			return bmr > 0 ? bmi.slice(0, bmr) : bmi;
 		}
-		const 协议拆分 = 值.split('://');
-		if (协议拆分.length !== 2) return 值;
-		const 斜杠索引 = 协议拆分[1].indexOf('/');
-		return 斜杠索引 > 0 ? `${协议拆分[0]}://${协议拆分[1].slice(0, 斜杠索引)}` : 值;
+		const bms = bmi.split('://');
+		if (bms.length !== 2) return bmi;
+		const bns = bms[1].indexOf('/');
+		return bns > 0 ? `${bms[0]}://${bms[1].slice(0, bns)}` : bmi;
 	};
-
-	const 木马路径匹配 = /\/trojan=([^?#\s]+)/i.exec(pathname);
-	if (木马路径匹配) {
+	const boa = /\/trojan=([^?#\s]+)/i.exec(bb);
+	if (boa) {
 		try {
-			反代上下文.木马反代地址 = 解析木马反代地址(木马路径匹配[1].replace(/\/+$/, ''));
+			br.bs = bob(boa[1].replace(/\/+$/, ''));
 		} catch (err) {
-			console.error('解析木马反代地址失败:', err.message);
-			反代上下文.木马反代地址 = null;
+			console.error('Error:', err.message);
+			br.bs = null;
 		}
 	}
-
-	const 查询反代IP = searchParams.get('proxyip');
-	if (查询反代IP !== null) {
-		if (!解析代理URL(查询反代IP)) {
-			设置反代IP(查询反代IP);
-			保存快照();
-			return 反代上下文;
+	const cd = searchParams.get('proxyip');
+	if (cd !== null) {
+		if (!big(cd)) {
+			bja(cd);
+			bam();
+			return br;
 		}
 	} else {
-		let 匹配 = /\/(socks5?|http|https|turn|sstp):\/?\/?([^/?#\s]+)/i.exec(pathname);
-		if (匹配) {
-			const 类型 = 匹配[1].toLowerCase();
-			启用SOCKS5反代 = 类型 === 'sock' || 类型 === 'socks' ? 'socks5' : 类型;
-			我的SOCKS5账号 = 匹配[2].split('/')[0];
-			启用SOCKS5全局反代 = true;
-		} else if ((匹配 = /\/(g?s5|socks5|g?http|g?https|g?turn|g?sstp)=([^/?#\s]+)/i.exec(pathname))) {
-			const 类型 = 匹配[1].toLowerCase();
-			我的SOCKS5账号 = 匹配[2].split('/')[0];
-			启用SOCKS5反代 = 类型.includes('sstp') ? 'sstp' : (类型.includes('turn') ? 'turn' : (类型.includes('https') ? 'https' : (类型.includes('http') ? 'http' : 'socks5')));
-			if (类型.startsWith('g')) 启用SOCKS5全局反代 = true;
-		} else if ((匹配 = /\/(proxyip[.=]|pyip=|ip=)([^?#\s]+)/.exec(pathLower))) {
-			const 路径反代值 = 提取路径值(匹配[2]);
-			if (!解析代理URL(路径反代值)) {
-				设置反代IP(路径反代值);
-				保存快照();
-				return 反代上下文;
+		let ce = /\/(socks5?|http|https|turn|sstp):\/?\/?([^/?#\s]+)/i.exec(bb);
+		if (ce) {
+			const cf = ce[1].toLowerCase();
+			be = cf === 'sock' || cf === 'socks' ? 'socks5' : cf;
+			bi = ce[2].split('/')[0];
+			bh = true;
+		} else if ((ce = /\/(g?s5|socks5|g?http|g?https|g?turn|g?sstp)=([^/?#\s]+)/i.exec(bb))) {
+			const ci = ce[1].toLowerCase();
+			bi = ce[2].split('/')[0];
+			be = ci.includes('sstp') ? 'sstp' : (ci.includes('turn') ? 'turn' : (ci.includes('https') ? 'https' : (ci.includes('http') ? 'http' : 'socks5')));
+			if (ci.startsWith('g')) bh = true;
+		} else if ((ce = /\/(proxyip[.=]|pyip=|ip=)([^?#\s]+)/.exec(bc))) {
+			const cl = blt(ce[2]);
+			if (!big(cl)) {
+				bja(cl);
+				bam();
+				return br;
 			}
 		}
 	}
-
-	if (!我的SOCKS5账号) {
-		启用SOCKS5反代 = null;
-		保存快照();
-		return 反代上下文;
+	if (!bi) {
+		be = null;
+		bam();
+		return br;
 	}
-
 	try {
-		parsedSocks5Address = await arp(我的SOCKS5账号, 获取代理默认端口(启用SOCKS5反代));
-		if (searchParams.get('socks5')) 启用SOCKS5反代 = 'socks5';
-		else if (searchParams.get('http')) 启用SOCKS5反代 = 'http';
-		else if (searchParams.get('https')) 启用SOCKS5反代 = 'https';
-		else if (searchParams.get('turn')) 启用SOCKS5反代 = 'turn';
-		else if (searchParams.get('sstp')) 启用SOCKS5反代 = 'sstp';
-		else 启用SOCKS5反代 = 启用SOCKS5反代 || 'socks5';
+		bk = await arp(bi, awe(be));
+		if (searchParams.get('socks5')) be = 'socks5';
+		else if (searchParams.get('http')) be = 'http';
+		else if (searchParams.get('https')) be = 'https';
+		else if (searchParams.get('turn')) be = 'turn';
+		else if (searchParams.get('sstp')) be = 'sstp';
+		else be = be || 'socks5';
 	} catch (err) {
-		console.error('解析SOCKS5地址失败:', err.message);
-		启用SOCKS5反代 = null;
+		console.error('Error:', err.message);
+		be = null;
 	}
-	保存快照();
-	return 反代上下文;
+	bam();
+	return br;
 }
-
-const 反代协议默认端口 = { socks5: 1080, http: 80, https: 443, turn: 3478, sstp: 443 };
-function 获取代理默认端口(类型) {
-	return 反代协议默认端口[String(类型 || '').toLowerCase()] || 80;
+const avo = { socks5: 1080, http: 80, https: 443, turn: 3478, sstp: 443 };
+function awe(awl) {
+	return avo[String(awl || '').toLowerCase()] || 80;
 }
-
 const ark = /^(?:[A-Z0-9+/]{4})*(?:[A-Z0-9+/]{2}==|[A-Z0-9+/]{3}=)?$/i, arm = /^\[.*\]$/;
 function arp(art, ash = 80) {
 	art = String(art || '').trim().replace(/^(socks5|http|https|turn|sstp):\/\//i, '').split('#')[0].trim();
