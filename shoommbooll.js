@@ -1,7 +1,7 @@
 ﻿const Version = '2026-10-08 22:23:27';
 let config_JSON, 缓存SOCKS5白名单 = null, 调试日志打印 = false;
 let SOCKS5白名单 = ['*tapecontent.net', '*cloudatacdn.com', '*loadshare.org', '*cdn-centaurus.com', 'scholar.google.com'];
-const Pages静态页面 = 'https://edt-pages.github.io', EDT_版本号 = Number(String(Version).replace(/\D+/g, ''));
+const Pages静态页面 = 'https://edt-pages.github.io', cid = Number(String(Version).replace(/\D+/g, ''));
 ///////////////////////////////////////////////////////全局常量和工具函数///////////////////////////////////////////////
 const WS早期数据最大字节 = 8 * 1024, WS早期数据最大头长度 = Math.ceil(WS早期数据最大字节 * 4 / 3) + 4;
 const 上行合包目标字节 = 20 * 1024, 上行队列最大字节 = 16 * 1024 * 1024, 上行队列最大条目 = 4096;
@@ -13,7 +13,7 @@ const 特征码字典 = [
 	(String.fromCharCode(67, 109) + URL.name[2] + 'i' + URL.name[0]).toLowerCase(),
 	String(2407 * 300 - 10).split('').reverse().join('')
 ];
-const 汇聚订阅_UA = 'v2rayN/edge' + 'tunnel (https://github.com/' + 特征码字典[1] + '/edge' + 'tunnel)';
+const cia = 'v2rayN/edge' + 'tunnel (https://github.com/' + 特征码字典[1] + '/edge' + 'tunnel)';
 ///////////////////////////////////////////////////////主程序入口///////////////////////////////////////////////
 export default {
 	async fetch(request, env, ctx) {
@@ -64,7 +64,7 @@ export default {
 					const 目标码 = 目标UUID.charCodeAt(i);
 					目标前8总和 += 目标码 <= 57 ? 目标码 - 48 : 目标码 - 87;
 				}
-				if (请求前8总和 === 目标前8总和 && 请求UUID.slice(-12) === 目标UUID.slice(-12)) return new Response(JSON.stringify({ Version: EDT_版本号 }), { status: 200, headers: { 'Content-Type': 'application/json;charset=utf-8' } });
+				if (请求前8总和 === 目标前8总和 && 请求UUID.slice(-12) === 目标UUID.slice(-12)) return new Response(JSON.stringify({ Version: cid }), { status: 200, headers: { 'Content-Type': 'application/json;charset=utf-8' } });
 			}
 		} else if (管理员密码 && upgradeHeader === 'websocket') {// WebSocket代理
 			const 反代上下文 = await axe(url, userID, 默认反代IP, 默认反代兜底);
@@ -125,7 +125,7 @@ export default {
 							const 待验证优选URL = url.searchParams.get('url');
 							try {
 								new URL(待验证优选URL);
-								const 请求优选API内容 = await 请求优选API([待验证优选URL], url.searchParams.get('port') || '443', 本机标识头);
+								const 请求优选API内容 = await co([待验证优选URL], url.searchParams.get('port') || '443', 本机标识头);
 								let 优选API的IP = 请求优选API内容[0].length > 0 ? 请求优选API内容[0] : 请求优选API内容[1];
 								优选API的IP = 优选API的IP.map(item => item.replace(/#(.+)$/, (_, remark) => '#' + decodeURIComponent(remark)));
 								return new Response(JSON.stringify({ success: true, data: 优选API的IP }, null, 2), { status: 200, headers: { 'Content-Type': 'application/json;charset=utf-8' } });
@@ -386,7 +386,7 @@ export default {
 										}
 									}
 								}
-								const 请求优选API内容 = await 请求优选API(优选API, '443', 本机标识头);
+								const 请求优选API内容 = await co(优选API, '443', 本机标识头);
 								const 合并其他节点数组 = [...new Set(其他节点.concat(请求优选API内容[1]))];
 								其他节点LINK = 合并其他节点数组.length > 0 ? 合并其他节点数组.join('\n') + '\n' : '';
 								const 优选API的IP = 请求优选API内容[0];
@@ -394,7 +394,7 @@ export default {
 								完整优选IP = [...new Set(优选IP.concat(优选API的IP))];
 							} else { // 优选订阅生成器
 								let 优选订阅生成器HOST = url.searchParams.get('sub') || config_JSON.优选订阅生成.SUB;
-								const [优选生成器IP数组, 优选生成器其他节点] = await 获取优选订阅生成器数据(优选订阅生成器HOST, 本机标识头);
+								const [优选生成器IP数组, 优选生成器其他节点] = await cbc(优选订阅生成器HOST, 本机标识头);
 								完整优选IP = 完整优选IP.concat(优选生成器IP数组);
 								其他节点LINK += 优选生成器其他节点;
 							}
@@ -457,7 +457,7 @@ export default {
 						} else { // 订阅转换
 							const 订阅转换URL = `${config_JSON.订阅转换配置.SUBAPI}/sub?target=${订阅类型}&url=${encodeURIComponent(url.protocol + '//' + url.host + '/sub?target=mixed&token=' + 今日订阅转换后端专属TOKEN + '&cnIspCode=' + 识别运营商(request) + (url.searchParams.has('sub') && url.searchParams.get('sub') != '' ? `&sub=${url.searchParams.get('sub')}` : ''))}&config=${encodeURIComponent(config_JSON.订阅转换配置.SUBCONFIG)}&emoji=${config_JSON.订阅转换配置.SUBEMOJI}&list=${config_JSON.订阅转换配置.SUBLIST}&scv=${config_JSON.跳过证书验证}&xudp=${config_JSON.订阅转换配置.XUDP}&udp=${config_JSON.订阅转换配置.UDP}&tls13=${config_JSON.订阅转换配置.TLS13}&append_type=${config_JSON.订阅转换配置.APPEND_TYPE}&sort=${config_JSON.订阅转换配置.SORT}&expand=${config_JSON.订阅转换配置.EXPAND}`;
 							try {
-								const response = await fetch(订阅转换URL, { headers: { 'User-Agent': 'Subconverter for ' + 订阅类型 + ' edge' + 'tunnel (https://github.com/' + 特征码字典[1] + '/edge' + 'tunnel) Uid/0x' + 本机标识头 + ' Version/' + EDT_版本号 } });
+								const response = await fetch(订阅转换URL, { headers: { 'User-Agent': 'Subconverter for ' + 订阅类型 + ' edge' + 'tunnel (https://github.com/' + 特征码字典[1] + '/edge' + 'tunnel) Uid/0x' + 本机标识头 + ' Version/' + cid } });
 								if (response.ok) {
 									订阅内容 = await response.text();
 									if (url.searchParams.has('surge') || ua.includes('surge')) 订阅内容 = Surge订阅配置文件热补丁(订阅内容, url.protocol + '//' + url.host + '/sub?token=' + 订阅TOKEN + '&surge', config_JSON);
@@ -5904,260 +5904,229 @@ async function ala(alb) {
 	const ali = ale.split(',');
 	return ali;
 }
-
-async function 获取优选订阅生成器数据(优选订阅生成器HOST, uid = "000000") {
-	let 优选IP = [], 其他节点LINK = '', 格式化HOST = 优选订阅生成器HOST.replace(/^sub:\/\//i, 'https://').split('#')[0].split('?')[0];
-	if (!/^https?:\/\//i.test(格式化HOST)) 格式化HOST = `https://${格式化HOST}`;
+async function cbc(cbr, cdc = "000000") {
+	let ceo = [], cer = '', cfc = cbr.replace(/^sub:\/\//i, 'https://').split('#')[0].split('?')[0];
+	if (!/^https?:\/\//i.test(cfc)) cfc = `https://${cfc}`;
 
 	try {
-		const url = new URL(格式化HOST);
-		格式化HOST = url.origin;
+		const cfo = new URL(cfc);
+		cfc = cfo.origin;
 	} catch (error) {
-		优选IP.push(`127.0.0.1:1234#${优选订阅生成器HOST}优选订阅生成器格式化异常:${error.message}`);
-		return [优选IP, 其他节点LINK];
+		ceo.push(`127.0.0.1:1234#${cbr}Error:${error.message}`);
+		return [ceo, cer];
 	}
 
-	const 优选订阅生成器URL = `${格式化HOST}/sub?host=example.com&uuid=00000000-0000-4000-8000-000000000000`;
+	const cgs = `${cfc}/sub?host=example.com&uuid=00000000-0000-4000-8000-000000000000`;
 
 	try {
-		const response = await fetch(优选订阅生成器URL, {
-			headers: { 'User-Agent': 汇聚订阅_UA + ' Uid/0x' + uid + ' Version/' + EDT_版本号 }
+		const chi = await fetch(cgs, {
+			headers: { 'User-Agent': cia + ' Uid/0x' + cdc + ' Version/' + cid }
 		});
 
-		if (!response.ok) {
-			优选IP.push(`127.0.0.1:1234#${优选订阅生成器HOST}优选订阅生成器异常:${response.statusText}`);
-			return [优选IP, 其他节点LINK];
+		if (!chi.ok) {
+			ceo.push(`127.0.0.1:1234#${cbr}Message:${chi.statusText}`);
+			return [ceo, cer];
 		}
 
-		const 优选订阅生成器返回订阅内容 = atob(await response.text());
-		const 订阅行列表 = 优选订阅生成器返回订阅内容.includes('\r\n')
-			? 优选订阅生成器返回订阅内容.split('\r\n')
-			: 优选订阅生成器返回订阅内容.split('\n');
+		const cim = atob(await chi.text());
+		const cio = cim.includes('\r\n')
+			? cim.split('\r\n')
+			: cim.split('\n');
 
-		for (const 行内容 of 订阅行列表) {
-			if (!行内容.trim()) continue; // 跳过空行
-			if (行内容.includes('00000000-0000-4000-8000-000000000000') && 行内容.includes('example.com')) {
-				// 这是优选IP行，提取 域名:端口#备注
-				const 地址匹配 = 行内容.match(/:\/\/[^@]+@([^?]+)/);
-				if (地址匹配) {
-					let 地址端口 = 地址匹配[1], 备注 = ''; // 域名:端口 或 IP:端口
-					const 备注匹配 = 行内容.match(/#(.+)$/);
-					if (备注匹配) 备注 = '#' + decodeURIComponent(备注匹配[1]);
-					优选IP.push(地址端口 + 备注);
+		for (const cis of cio) {
+			if (!cis.trim()) continue;
+			if (cis.includes('00000000-0000-4000-8000-000000000000') && cis.includes('example.com')) {
+				const cjd = cis.match(/:\/\/[^@]+@([^?]+)/);
+				if (cjd) {
+					let cli = cjd[1], clv = '';
+					const clx = cis.match(/#(.+)$/);
+					if (clx) clv = '#' + decodeURIComponent(clx[1]);
+					ceo.push(cli + clv);
 				}
 			} else {
-				其他节点LINK += 行内容 + '\n';
+				cer += cis + '\n';
 			}
 		}
 	} catch (error) {
-		优选IP.push(`127.0.0.1:1234#${优选订阅生成器HOST}优选订阅生成器异常:${error.message}`);
+		ceo.push(`127.0.0.1:1234#${cbr}Error:${error.message}`);
 	}
-
-	return [优选IP, 其他节点LINK];
+	return [ceo, cer];
 }
-
-async function 请求优选API(urls, 默认端口 = '443', uid = "000000", 超时时间 = 3000) {
-	if (!urls?.length) return [[], [], [], []];
-	const results = new Set(), 反代IP池 = new Set();
-	let 订阅链接响应的明文LINK内容 = '', 需要订阅转换订阅URLs = [];
-	await Promise.allSettled(urls.map(async (url) => {
-		// 检查URL是否包含备注名
-		const hashIndex = url.indexOf('#');
-		const urlWithoutHash = hashIndex > -1 ? url.substring(0, hashIndex) : url;
-		const API备注名 = hashIndex > -1 ? decodeURIComponent(url.substring(hashIndex + 1)) : null;
-		const 优选IP作为反代IP = url.toLowerCase().includes('proxyip=true');
-		if (urlWithoutHash.toLowerCase().startsWith('sub://')) {
+async function co(cr, cs = '443', ct = "000000", cu = 3000) {
+	if (!cr?.length) return [[], [], [], []];
+	const cv = new Set(), cx = new Set();
+	let cab = '', cad = [];
+	await Promise.allSettled(cr.map(async (cam) => {
+		const can = cam.indexOf('#');
+		const cap = can > -1 ? cam.substring(0, can) : cam;
+		const car = can > -1 ? decodeURIComponent(cam.substring(can + 1)) : null;
+		const cat = cam.toLowerCase().includes('proxyip=true');
+		if (cap.toLowerCase().startsWith('sub://')) {
 			try {
-				const [优选IP, 其他节点LINK] = await 获取优选订阅生成器数据(urlWithoutHash, uid);
-				// 处理第一个数组 - 优选IP
-				if (API备注名) {
-					for (const ip of 优选IP) {
-						const 处理后IP = ip.includes('#')
-							? `${ip} [${API备注名}]`
-							: `${ip}#[${API备注名}]`;
-						results.add(处理后IP);
-						if (优选IP作为反代IP) 反代IP池.add(ip.split('#')[0]);
+				const [caw, cay] = await cbc(cap, ct);
+				if (car) {
+					for (const cmw of caw) {
+						const cmb = cmw.includes('#')
+							? `${cmw} [${car}]`
+							: `${cmw}#[${car}]`;
+						cv.add(cmb);
+						if (cat) cx.add(cmw.split('#')[0]);
 					}
 				} else {
-					for (const ip of 优选IP) {
-						results.add(ip);
-						if (优选IP作为反代IP) 反代IP池.add(ip.split('#')[0]);
+					for (const cns of caw) {
+						cv.add(cns);
+						if (cat) cx.add(cns.split('#')[0]);
 					}
 				}
-				// 处理第二个数组 - 其他节点LINK
-				if (其他节点LINK && typeof 其他节点LINK === 'string' && API备注名) {
-					const 处理后LINK内容 = 其他节点LINK.replace(/([a-z][a-z0-9+\-.]*:\/\/[^\r\n]*?)(\r?\n|$)/gi, (match, link, lineEnd) => {
-						const 完整链接 = link.includes('#')
-							? `${link}${encodeURIComponent(` [${API备注名}]`)}`
-							: `${link}${encodeURIComponent(`#[${API备注名}]`)}`;
-						return `${完整链接}${lineEnd}`;
+				if (cay && typeof cay === 'string' && car) {
+					const cob = cay.replace(/([a-z][a-z0-9+\-.]*:\/\/[^\r\n]*?)(\r?\n|$)/gi, (ear, eas, eat) => {
+						const cod = eas.includes('#')
+							? `${eas}${encodeURIComponent(` [${car}]`)}`
+							: `${eas}${encodeURIComponent(`#[${car}]`)}`;
+						return `${cod}${eat}`;
 					});
-					订阅链接响应的明文LINK内容 += 处理后LINK内容;
-				} else if (其他节点LINK && typeof 其他节点LINK === 'string') {
-					订阅链接响应的明文LINK内容 += 其他节点LINK;
+					cab += cob;
+				} else if (cay && typeof cay === 'string') {
+					cab += cay;
 				}
 			} catch (e) { }
 			return;
 		}
 
 		try {
-			const controller = new AbortController();
-			const timeoutId = setTimeout(() => controller.abort(), 超时时间);
-			const response = await fetch(urlWithoutHash, { signal: controller.signal, headers: { 'User-Agent': 汇聚订阅_UA + ' Uid/0x' + uid + ' Version/' + EDT_版本号 } });
-			clearTimeout(timeoutId);
-			let text = '';
+			const cog = new AbortController();
+			const col = setTimeout(() => cog.abort(), cu);
+			const con = await fetch(cap, { signal: cog.signal, headers: { 'User-Agent': cia + ' Uid/0x' + ct + ' Version/' + cid } });
+			clearTimeout(col);
+			let coo = '';
 			try {
-				const buffer = await response.arrayBuffer();
-				const contentType = (response.headers.get('content-type') || '').toLowerCase();
-				const charset = contentType.match(/charset=([^\s;]+)/i)?.[1]?.toLowerCase() || '';
+				const da = await con.arrayBuffer();
+				const dc = (con.headers.get('content-type') || '').toLowerCase();
+				const dd = dc.match(/charset=([^\s;]+)/i)?.[1]?.toLowerCase() || '';
 
-				// 根据 Content-Type 响应头判断编码优先级
-				let decoders = ['utf-8', 'gb2312']; // 默认优先 UTF-8
-				if (charset.includes('gb') || charset.includes('gbk') || charset.includes('gb2312')) {
-					decoders = ['gb2312', 'utf-8']; // 如果明确指定 GB 系编码，优先尝试 GB2312
+				let de = ['utf-8', 'gb2312'];
+				if (dd.includes('gb') || dd.includes('gbk') || dd.includes('gb2312')) {
+					de = ['gb2312', 'utf-8'];
 				}
 
-				// 尝试多种编码解码
-				let decodeSuccess = false;
-				for (const decoder of decoders) {
+				let ebb = false;
+				for (const ebn of de) {
 					try {
-						const decoded = new TextDecoder(decoder).decode(buffer);
-						// 验证解码结果的有效性
-						if (decoded && decoded.length > 0 && !decoded.includes('\ufffd')) {
-							text = decoded;
-							decodeSuccess = true;
+						const ebs = new TextDecoder(ebn).decode(da);
+						if (ebs && ebs.length > 0 && !ebs.includes('\ufffd')) {
+							coo = ebs;
+							ebb = true;
 							break;
-						} else if (decoded && decoded.length > 0) {
-							// 如果有替换字符 (U+FFFD)，说明编码不匹配，继续尝试下一个编码
+						} else if (ebs && ebs.length > 0) {
 							continue;
 						}
 					} catch (e) {
-						// 该编码解码失败，尝试下一个
 						continue;
 					}
 				}
-
-				// 如果所有编码都失败或无效，尝试 response.text()
-				if (!decodeSuccess) {
-					text = await response.text();
+				if (!ebb) {
+					coo = await con.text();
 				}
-
-				// 如果返回的是空或无效数据，返回
-				if (!text || text.trim().length === 0) {
+				if (!coo || coo.trim().length === 0) {
 					return;
 				}
 			} catch (e) {
 				console.error('Failed to decode response:', e);
 				return;
 			}
-
-			// 预处理订阅内容
-			/*
-			if (text.includes('proxies:') || (text.includes('outbounds"') && text.includes('inbounds"'))) {// Clash Singbox 配置
-				需要订阅转换订阅URLs.add(url);
-				return;
-			}
-			*/
-
-			let 预处理订阅明文内容 = text;
-			const cleanText = typeof text === 'string' ? text.replace(/\s/g, '') : '';
-			if (cleanText.length > 0 && cleanText.length % 4 === 0 && /^[A-Za-z0-9+/]+={0,2}$/.test(cleanText)) {
+			let ecc = coo;
+			const ecf = typeof coo === 'string' ? coo.replace(/\s/g, '') : '';
+			if (ecf.length > 0 && ecf.length % 4 === 0 && /^[A-Za-z0-9+/]+={0,2}$/.test(ecf)) {
 				try {
-					const bytes = new Uint8Array(atob(cleanText).split('').map(c => c.charCodeAt(0)));
-					预处理订阅明文内容 = new TextDecoder('utf-8').decode(bytes);
+					const ecg = new Uint8Array(atob(ecf).split('').map(c => c.charCodeAt(0)));
+					ecc = new TextDecoder('utf-8').decode(ecg);
 				} catch { }
 			}
-			if (预处理订阅明文内容.split('#')[0].includes('://')) {
-				// 处理LINK内容
-				if (API备注名) {
-					const 处理后LINK内容 = 预处理订阅明文内容.replace(/([a-z][a-z0-9+\-.]*:\/\/[^\r\n]*?)(\r?\n|$)/gi, (match, link, lineEnd) => {
-						const 完整链接 = link.includes('#')
-							? `${link}${encodeURIComponent(` [${API备注名}]`)}`
-							: `${link}${encodeURIComponent(`#[${API备注名}]`)}`;
-						return `${完整链接}${lineEnd}`;
+			if (ecc.split('#')[0].includes('://')) {
+				if (car) {
+					const eck = ecc.replace(/([a-z][a-z0-9+\-.]*:\/\/[^\r\n]*?)(\r?\n|$)/gi, (ecm, ect, edd) => {
+						const edo = ect.includes('#')
+							? `${ect}${encodeURIComponent(` [${car}]`)}`
+							: `${ect}${encodeURIComponent(`#[${car}]`)}`;
+						return `${edo}${edd}`;
 					});
-					订阅链接响应的明文LINK内容 += 处理后LINK内容 + '\n';
+					cab += eck + '\n';
 				} else {
-					订阅链接响应的明文LINK内容 += 预处理订阅明文内容 + '\n';
+					cab += ecc + '\n';
 				}
 				return;
 			}
-
-			const lines = text.trim().split('\n').map(l => l.trim()).filter(l => l);
-			const isCSV = lines.length > 1 && lines[0].includes(',');
-			const IPV6_PATTERN = /^[^\[\]]*:[^\[\]]*:[^\[\]]/;
-			const parsedUrl = new URL(urlWithoutHash);
-			if (!isCSV) {
-				lines.forEach(line => {
-					const lineHashIndex = line.indexOf('#');
-					const [hostPart, remark] = lineHashIndex > -1 ? [line.substring(0, lineHashIndex), line.substring(lineHashIndex)] : [line, ''];
-					let hasPort = false;
-					if (hostPart.startsWith('[')) {
-						hasPort = /\]:(\d+)$/.test(hostPart);
+			const edp = coo.trim().split('\n').map(l => l.trim()).filter(l => l);
+			const eds = edp.length > 1 && edp[0].includes(',');
+			const eec = /^[^\[\]]*:[^\[\]]*:[^\[\]]/;
+			const eeg = new URL(cap);
+			if (!eds) {
+				edp.forEach(eel => {
+					const eff = eel.indexOf('#');
+					const [eft, egg] = eff > -1 ? [eel.substring(0, eff), eel.substring(eff)] : [eel, ''];
+					let ego = false;
+					if (eft.startsWith('[')) {
+						ego = /\]:(\d+)$/.test(eft);
 					} else {
-						const colonIndex = hostPart.lastIndexOf(':');
-						hasPort = colonIndex > -1 && /^\d+$/.test(hostPart.substring(colonIndex + 1));
+						const ehf = eft.lastIndexOf(':');
+						ego = ehf > -1 && /^\d+$/.test(eft.substring(ehf + 1));
 					}
-					const port = parsedUrl.searchParams.get('port') || 默认端口;
-					const ipItem = hasPort ? line : `${hostPart}:${port}${remark}`;
-					// 处理第一个数组 - 优选IP
-					if (API备注名) {
-						const 处理后IP = ipItem.includes('#')
-							? `${ipItem} [${API备注名}]`
-							: `${ipItem}#[${API备注名}]`;
-						results.add(处理后IP);
+					const eib = eeg.searchParams.get('port') || cs;
+					const ekg = ego ? eel : `${eft}:${eib}${egg}`;
+					if (car) {
+						const ela = ekg.includes('#')
+							? `${ekg} [${car}]`
+							: `${ekg}#[${car}]`;
+						cv.add(ela);
 					} else {
-						results.add(ipItem);
+						cv.add(ekg);
 					}
-					if (优选IP作为反代IP) 反代IP池.add(ipItem.split('#')[0]);
+					if (cat) cx.add(ekg.split('#')[0]);
 				});
 			} else {
-				const headers = lines[0].split(',').map(h => h.trim());
-				const dataLines = lines.slice(1);
-				if (headers.includes('IP地址') && headers.includes('端口') && headers.includes('数据中心')) {
-					const ipIdx = headers.indexOf('IP地址'), portIdx = headers.indexOf('端口');
-					const remarkIdx = headers.indexOf('国家') > -1 ? headers.indexOf('国家') :
-						headers.indexOf('城市') > -1 ? headers.indexOf('城市') : headers.indexOf('数据中心');
-					const tlsIdx = headers.indexOf('TLS');
-					dataLines.forEach(line => {
+				const eld = edp[0].split(',').map(h => h.trim());
+				const elf = edp.slice(1);
+				if (eld.includes('IP地址') && eld.includes('端口') && eld.includes('数据中心')) {
+					const earl = eld.indexOf('IP地址'), portIdx = eld.indexOf('端口');
+					const earn = eld.indexOf('国家') > -1 ? eld.indexOf('国家') :
+						eld.indexOf('城市') > -1 ? eld.indexOf('城市') : eld.indexOf('数据中心');
+					const ease = eld.indexOf('TLS');
+					elf.forEach(line => {
 						const cols = line.split(',').map(c => c.trim());
-						if (tlsIdx !== -1 && cols[tlsIdx]?.toLowerCase() !== 'true') return;
-						const wrappedIP = IPV6_PATTERN.test(cols[ipIdx]) ? `[${cols[ipIdx]}]` : cols[ipIdx];
-						const ipItem = `${wrappedIP}:${cols[portIdx]}#${cols[remarkIdx]}`;
-						// 处理第一个数组 - 优选IP
-						if (API备注名) {
-							const 处理后IP = `${ipItem} [${API备注名}]`;
-							results.add(处理后IP);
+						if (ease !== -1 && cols[ease]?.toLowerCase() !== 'true') return;
+						const east = eec.test(cols[earl]) ? `[${cols[earl]}]` : cols[earl];
+						const easy = `${east}:${cols[portIdx]}#${cols[earn]}`;
+						if (car) {
+							const eats = `${easy} [${car}]`;
+							cv.add(eats);
 						} else {
-							results.add(ipItem);
+							cv.add(easy);
 						}
-						if (优选IP作为反代IP) 反代IP池.add(`${wrappedIP}:${cols[portIdx]}`);
+						if (cat) cx.add(`${east}:${cols[portIdx]}`);
 					});
-				} else if (headers.some(h => h.includes('IP')) && headers.some(h => h.includes('延迟')) && headers.some(h => h.includes('下载速度'))) {
-					const ipIdx = headers.findIndex(h => h.includes('IP'));
-					const delayIdx = headers.findIndex(h => h.includes('延迟'));
-					const speedIdx = headers.findIndex(h => h.includes('下载速度'));
-					const port = parsedUrl.searchParams.get('port') || 默认端口;
-					dataLines.forEach(line => {
-						const cols = line.split(',').map(c => c.trim());
-						const wrappedIP = IPV6_PATTERN.test(cols[ipIdx]) ? `[${cols[ipIdx]}]` : cols[ipIdx];
-						const ipItem = `${wrappedIP}:${port}#CF优选 ${cols[delayIdx]}ms ${cols[speedIdx]}MB/s`;
-						// 处理第一个数组 - 优选IP
-						if (API备注名) {
-							const 处理后IP = `${ipItem} [${API备注名}]`;
-							results.add(处理后IP);
+				} else if (eld.some(h => h.includes('IP')) && eld.some(h => h.includes('延迟')) && eld.some(h => h.includes('下载速度'))) {
+					const echo = eld.findIndex(h => h.includes('IP'));
+					const ebit = eld.findIndex(h => h.includes('延迟'));
+					const ebro = eld.findIndex(h => h.includes('下载速度'));
+					const eccm = eeg.searchParams.get('port') || cs;
+					elf.forEach(emmy => {
+						const edgy = emmy.split(',').map(c => c.trim());
+						const edit = eec.test(edgy[echo]) ? `[${edgy[echo]}]` : edgy[echo];
+						const eery = `${edit}:${eccm}#CF优选 ${edgy[ebit]}ms ${edgy[ebro]}MB/s`;
+						if (car) {
+							const elan = `${eery} [${car}]`;
+							cv.add(elan);
 						} else {
-							results.add(ipItem);
+							cv.add(eery);
 						}
-						if (优选IP作为反代IP) 反代IP池.add(`${wrappedIP}:${port}`);
+						if (cat) cx.add(`${edit}:${eccm}`);
 					});
 				}
 			}
 		} catch (e) { }
 	}));
-	// 将LINK内容转换为数组并去重
-	const LINK数组 = 订阅链接响应的明文LINK内容.trim() ? [...new Set(订阅链接响应的明文LINK内容.split(/\r?\n/).filter(line => line.trim() !== ''))] : [];
-	return [Array.from(results), LINK数组, 需要订阅转换订阅URLs, Array.from(反代IP池)];
+	const emir = cab.trim() ? [...new Set(cab.split(/\r?\n/).filter(emit => emit.trim() !== ''))] : [];
+	return [Array.from(cv), emir, cad, Array.from(cx)];
 }
 async function axe(ayr, azo, azt = '', ba = true) {
 	const { searchParams } = ayr;
