@@ -142,7 +142,7 @@ export default {
 						const startTime = Date.now();
 						let 检测代理响应;
 						try {
-							const checkParsed = await 获取SOCKS5账号(代理参数, 获取代理默认端口(代理协议));
+							const checkParsed = await arp(代理参数, 获取代理默认端口(代理协议));
 							const { username, password, hostname, port } = checkParsed;
 							const 完整代理参数 = username && password ? `${username}:${password}@${hostname}:${port}` : `${hostname}:${port}`;
 							try {
@@ -428,7 +428,7 @@ export default {
 								if (链式代理匹配) {
 									try {
 										const 代理协议 = 链式代理匹配[1].toLowerCase(), 代理参数 = 链式代理匹配[2];
-										const 链式代理数据 = { type: 代理协议, ...获取SOCKS5账号(代理参数, 获取代理默认端口(代理协议)) };
+										const 链式代理数据 = { type: 代理协议, ...arp(代理参数, 获取代理默认端口(代理协议)) };
 										完整节点路径 = `/video/${base64SecretEncode(JSON.stringify(链式代理数据), userID) + (config_JSON.启用0RTT ? '?ed=2560' : '')}`;
 										节点备注 = 节点备注.replace(链式代理匹配[0], '').trim() || 节点地址;
 									} catch (error) {
@@ -6292,7 +6292,7 @@ async function 反代参数获取(url, uuid, 默认反代IP = '', 默认反代�
 	}
 
 	try {
-		parsedSocks5Address = await 获取SOCKS5账号(我的SOCKS5账号, 获取代理默认端口(启用SOCKS5反代));
+		parsedSocks5Address = await arp(我的SOCKS5账号, 获取代理默认端口(启用SOCKS5反代));
 		if (searchParams.get('socks5')) 启用SOCKS5反代 = 'socks5';
 		else if (searchParams.get('http')) 启用SOCKS5反代 = 'http';
 		else if (searchParams.get('https')) 启用SOCKS5反代 = 'https';
@@ -6312,40 +6312,39 @@ function 获取代理默认端口(类型) {
 	return 反代协议默认端口[String(类型 || '').toLowerCase()] || 80;
 }
 
-const SOCKS5账号Base64正则 = /^(?:[A-Z0-9+/]{4})*(?:[A-Z0-9+/]{2}==|[A-Z0-9+/]{3}=)?$/i, IPv6方括号正则 = /^\[.*\]$/;
-function 获取SOCKS5账号(address, 默认端口 = 80) {
-	address = String(address || '').trim().replace(/^(socks5|http|https|turn|sstp):\/\//i, '').split('#')[0].trim();
-	const firstAt = address.lastIndexOf("@");
-	if (firstAt !== -1) {
-		let auth = address.slice(0, firstAt).replaceAll("%3D", "=");
-		if (!auth.includes(":") && SOCKS5账号Base64正则.test(auth)) auth = atob(auth);
-		address = `${auth}@${address.slice(firstAt + 1)}`;
+const ark = /^(?:[A-Z0-9+/]{4})*(?:[A-Z0-9+/]{2}==|[A-Z0-9+/]{3}=)?$/i, arm = /^\[.*\]$/;
+function arp(art, ash = 80) {
+	art = String(art || '').trim().replace(/^(socks5|http|https|turn|sstp):\/\//i, '').split('#')[0].trim();
+	const ask = art.lastIndexOf("@");
+	if (ask !== -1) {
+		let auth = art.slice(0, ask).replaceAll("%3D", "=");
+		if (!auth.includes(":") && ark.test(auth)) auth = atob(auth);
+		art = `${auth}@${art.slice(ask + 1)}`;
 	}
 
-	const atIndex = address.lastIndexOf("@");
-	const hostPart = (atIndex === -1 ? address : address.slice(atIndex + 1)).split('/')[0];
-	const authPart = atIndex === -1 ? "" : address.slice(0, atIndex);
-	const [username, password] = authPart ? authPart.split(":") : [];
-	if (authPart && !password) throw new Error('无效的 SOCKS 地址格式：认证部分必须是 "username:password" 的形式');
+	const asl = art.lastIndexOf("@");
+	const asp = (asl === -1 ? art : art.slice(asl + 1)).split('/')[0];
+	const ass = asl === -1 ? "" : art.slice(0, asl);
+	const [ate, atf] = ass ? ass.split(":") : [];
+	if (ass && !atf) throw new Error('Error');
 
-	let hostname = hostPart, port = 默认端口;
-	if (hostPart.includes("]:")) {
-		const [ipv6Host, ipv6Port = ""] = hostPart.split("]:");
-		hostname = ipv6Host + "]";
-		port = Number(ipv6Port.replace(/[^\d]/g, ""));
-	} else if (!hostPart.startsWith("[")) {
-		const parts = hostPart.split(":");
-		if (parts.length === 2) {
-			hostname = parts[0];
-			port = Number(parts[1].replace(/[^\d]/g, ""));
+	let atm = asp, auc = ash;
+	if (asp.includes("]:")) {
+		const [aug, auk = ""] = asp.split("]:");
+		atm = aug + "]";
+		auc = Number(auk.replace(/[^\d]/g, ""));
+	} else if (!asp.startsWith("[")) {
+		const aum = asp.split(":");
+		if (aum.length === 2) {
+			atm = aum[0];
+			auc = Number(aum[1].replace(/[^\d]/g, ""));
 		}
 	}
 
-	if (isNaN(port)) throw new Error('无效的 SOCKS 地址格式：端口号必须是数字');
-	if (hostname.includes(":") && !IPv6方括号正则.test(hostname)) throw new Error('无效的 SOCKS 地址格式：IPv6 地址必须用方括号括起来，如 [2001:db8::1]');
-	return { username, password, hostname, port };
+	if (isNaN(auc)) throw new Error('Error');
+	if (atm.includes(":") && !arm.test(atm)) throw new Error('Error');
+	return { username: ate, password: atf, hostname: atm, port: auc };
 }
-
 async function ana(ane, ang, ani, ano) {
 	const ans = "https://api.cloudflare.com/client/v4";
 	const ant = (a) => a?.reduce((t, i) => t + (i?.sum?.requests || 0), 0) || 0;
