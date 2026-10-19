@@ -144,7 +144,7 @@ export default {
 							const 完整代理参数 = username && password ? `${username}:${password}@${hostname}:${port}` : `${hostname}:${port}`;
 							try {
 								const 检测主机 = 'cloudflare.com', 检测端口 = 443, encoder = new TextEncoder(), decoder = new TextDecoder();
-								const TCP连接 = 创建请求TCP连接器(request);
+								const TCP连接 = iw(request);
 								let tcpSocket = null, tlsSocket = null;
 								try {
 									tcpSocket = 代理协议 === 'socks5'
@@ -153,7 +153,7 @@ export default {
 											? await turnConnect(checkParsed, 检测主机, 检测端口, TCP连接)
 											: 代理协议 === 'sstp'
 												? await sstpConnect(checkParsed, 检测主机, 检测端口, TCP连接)
-												: (代理协议 === 'https' && isIPHostname(hostname)
+												: (代理协议 === 'https' && hay(hostname)
 													? await httpsConnect(检测主机, 检测端口, new Uint8Array(0), TCP连接, checkParsed)
 													: await httpConnect(检测主机, 检测端口, new Uint8Array(0), 代理协议 === 'https', TCP连接, checkParsed));
 									if (!tcpSocket) throw new Error('无法连接到代理服务器');
@@ -166,7 +166,7 @@ export default {
 										const value = await tlsSocket.read();
 										if (!value) break;
 										if (value.byteLength === 0) continue;
-										responseBuffer = 拼接字节数据(responseBuffer, value);
+										responseBuffer = hot(responseBuffer, value);
 										if (headerEndIndex === -1) {
 											const crlfcrlf = responseBuffer.findIndex((_, i) => i < responseBuffer.length - 3 && responseBuffer[i] === 0x0d && responseBuffer[i + 1] === 0x0a && responseBuffer[i + 2] === 0x0d && responseBuffer[i + 3] === 0x0a);
 											if (crlfcrlf !== -1) {
@@ -742,10 +742,10 @@ function 处理叉HTTPUDP请求(首包, reader, request, 反代上下文, respon
 				if (首包.协议 === 'trojan') {
 					木马UDP上下文.目标主机 = 首包.hostname;
 					木马UDP上下文.目标端口 = 首包.port;
-					if (木马UDP上下文.反代地址) await 转发木马UDP数据(首包.原始数据, 叉桥, 木马UDP上下文, request);
+					if (木马UDP上下文.反代地址) await hug(首包.原始数据, 叉桥, 木马UDP上下文, request);
 				}
 				if (!(首包.协议 === 'trojan' && 木马UDP上下文.反代地址) && 首包.rawData?.byteLength) {
-					if (首包.协议 === 'trojan') await 转发木马UDP数据(首包.rawData, 叉桥, 木马UDP上下文, request);
+					if (首包.协议 === 'trojan') await hug(首包.rawData, 叉桥, 木马UDP上下文, request);
 					else await forwardataudp(首包.rawData, 叉桥, udpRespHeader, request);
 					udpRespHeader = null;
 				}
@@ -753,7 +753,7 @@ function 处理叉HTTPUDP请求(首包, reader, request, 反代上下文, respon
 					const { done, value } = await reader.read();
 					if (done) break;
 					if (!value || value.byteLength === 0) continue;
-					if (首包.协议 === 'trojan') await 转发木马UDP数据(value, 叉桥, 木马UDP上下文, request);
+					if (首包.协议 === 'trojan') await hug(value, 叉桥, 木马UDP上下文, request);
 					else await forwardataudp(value, 叉桥, udpRespHeader, request);
 					udpRespHeader = null;
 				}
@@ -762,16 +762,16 @@ function 处理叉HTTPUDP请求(首包, reader, request, 反代上下文, respon
 				log(`[叉HTTP转发] 处理失败: ${err?.message || err}`);
 				closeSocketQuietly(叉桥);
 			} finally {
-				const 保持木马UDP反代下行 = !转发失败 && 首包.协议 === 'trojan' && 木马UDP上下文.反代地址 && 木马UDP上下文.反代Socket;
+				const 保持木马UDP反代下行 = !转发失败 && 首包.协议 === 'trojan' && 木马UDP上下文.反代地址 && 木马UDP上下文.iq;
 				if (!保持木马UDP反代下行) {
-					try { 木马UDP上下文.反代Socket?.close() } catch (e) { }
+					try { 木马UDP上下文.iq?.close() } catch (e) { }
 					closeSocketQuietly(叉桥);
 				}
 				try { reader.releaseLock() } catch (e) { }
 			}
 		},
 		cancel() {
-			try { 木马UDP上下文.反代Socket?.close() } catch (e) { }
+			try { 木马UDP上下文.iq?.close() } catch (e) { }
 			try { reader.releaseLock() } catch (e) { }
 		}
 	}), { status: 200, headers: responseHeaders });
@@ -1090,7 +1090,7 @@ async function 处理gRPC请求(request, yourUUID, 反代上下文 = {}) {
 				}
 				当前写入Socket = null;
 				try { reader.releaseLock() } catch (e) { }
-				try { 木马UDP上下文.反代Socket?.close() } catch (e) { }
+				try { 木马UDP上下文.iq?.close() } catch (e) { }
 				try { controller.close() } catch (e) { }
 			};
 
@@ -1164,14 +1164,14 @@ async function 处理gRPC请求(request, yourUUID, 反代上下文 = {}) {
 						}
 						if (!payload.byteLength) continue;
 						if (isDnsQuery) {
-							if (判断是否是木马) await 转发木马UDP数据(payload, grpcBridge, 木马UDP上下文, request);
+							if (判断是否是木马) await hug(payload, grpcBridge, 木马UDP上下文, request);
 							else await forwardataudp(payload, grpcBridge, null, request);
 							continue;
 						}
 						if (remoteConnWrapper.socket || remoteConnWrapper.connectingPromise) {
 							if (!(await 写入远端(payload))) throw new Error('Remote socket is not ready');
 						} else {
-							const 首包bytes = 数据转Uint8Array(payload);
+							const 首包bytes = hog(payload);
 							if (判断是否是木马 === null) 判断是否是木马 = 首包bytes.byteLength >= 58 && 首包bytes[56] === 0x0d && 首包bytes[57] === 0x0a;
 							if (判断是否是木马) {
 								const 解析结果 = 解析木马请求(首包bytes, yourUUID);
@@ -1186,8 +1186,8 @@ async function 处理gRPC请求(request, yourUUID, 反代上下文 = {}) {
 									isDnsQuery = true;
 									木马UDP上下文.目标主机 = hostname;
 									木马UDP上下文.目标端口 = port;
-									if (木马UDP上下文.反代地址) await 转发木马UDP数据(首包bytes, grpcBridge, 木马UDP上下文, request);
-									else if (有效数据长度(rawClientData) > 0) await 转发木马UDP数据(rawClientData, grpcBridge, 木马UDP上下文, request);
+									if (木马UDP上下文.反代地址) await hug(首包bytes, grpcBridge, 木马UDP上下文, request);
+									else if (有效数据长度(rawClientData) > 0) await hug(rawClientData, grpcBridge, 木马UDP上下文, request);
 								} else {
 									await forwardataTCP(hostname, port, rawClientData, grpcBridge, null, remoteConnWrapper, yourUUID, request, 反代上下文, true, 首包bytes);
 								}
@@ -1209,7 +1209,7 @@ async function 处理gRPC请求(request, yourUUID, 反代上下文 = {}) {
 								grpcBridge.send(respHeader);
 								const rawData = rawClientData;
 								if (isDnsQuery) {
-									if (判断是否是木马) await 转发木马UDP数据(rawData, grpcBridge, 木马UDP上下文, request);
+									if (判断是否是木马) await hug(rawData, grpcBridge, 木马UDP上下文, request);
 									else await forwardataudp(rawData, grpcBridge, null, request);
 								}
 								else await forwardataTCP(hostname, port, rawData, grpcBridge, null, remoteConnWrapper, yourUUID, request, 反代上下文);
@@ -1223,7 +1223,7 @@ async function 处理gRPC请求(request, yourUUID, 反代上下文 = {}) {
 				转发失败 = true;
 				log(`[gRPC转发] 处理失败: ${err?.message || err}`);
 			} finally {
-				const 保持木马UDP反代下行 = !转发失败 && isDnsQuery && 判断是否是木马 && 木马UDP上下文.反代地址 && 木马UDP上下文.反代Socket;
+				const 保持木马UDP反代下行 = !转发失败 && isDnsQuery && 判断是否是木马 && 木马UDP上下文.反代地址 && 木马UDP上下文.iq;
 				if (保持木马UDP反代下行) {
 					上行写入队列.清空();
 					失效远端连接();
@@ -1237,7 +1237,7 @@ async function 处理gRPC请求(request, yourUUID, 反代上下文 = {}) {
 		cancel() {
 			GRPC上行写入队列?.清空();
 			失效远端连接();
-			try { 木马UDP上下文.反代Socket?.close() } catch (e) { }
+			try { 木马UDP上下文.iq?.close() } catch (e) { }
 			try { reader.releaseLock() } catch (e) { }
 		}
 	}), { status: 200, headers: grpcHeaders });
@@ -1324,10 +1324,10 @@ async function 处理WS请求(request, yourUUID, url, 反代上下文 = {}) {
 	};
 
 	const 处理WS本地测速数据 = async (data) => {
-		const chunk = 数据转Uint8Array(data);
+		const chunk = hog(data);
 		if (!chunk.byteLength) return;
 		if (WS本地测速请求缓存.byteLength + chunk.byteLength > WS本地测速请求上限) throw new Error('WS local speed-test request is too large');
-		WS本地测速请求缓存 = 拼接字节数据(WS本地测速请求缓存, chunk);
+		WS本地测速请求缓存 = hot(WS本地测速请求缓存, chunk);
 
 		while (WS本地测速请求缓存.byteLength) {
 			const headerEnd = 查找HTTP请求头结尾(WS本地测速请求缓存);
@@ -1443,8 +1443,8 @@ async function 处理WS请求(request, yourUUID, url, 反代上下文 = {}) {
 				};
 				const 入站解密器 = {
 					async 输入(dataChunk) {
-						const chunk = 数据转Uint8Array(dataChunk);
-						if (chunk.byteLength > 0) 入站状态.buffer = 拼接字节数据(入站状态.buffer, chunk);
+						const chunk = hog(dataChunk);
+						if (chunk.byteLength > 0) 入站状态.buffer = hot(入站状态.buffer, chunk);
 						if (!入站状态.hasSalt) {
 							const 初始化成功 = await 初始化入站解密状态();
 							if (!初始化成功) return [];
@@ -1486,7 +1486,7 @@ async function 处理WS请求(request, yourUUID, url, 反代上下文 = {}) {
 					let 随机字节已发送 = false;
 					出站加密器 = {
 						async 加密并发送(dataChunk, sendChunk) {
-							const plaintextData = 数据转Uint8Array(dataChunk);
+							const plaintextData = hog(dataChunk);
 							if (!随机字节已发送) {
 								await sendChunk(出站随机字节);
 								随机字节已发送 = true;
@@ -1532,7 +1532,7 @@ async function 处理WS请求(request, yourUUID, url, 反代上下文 = {}) {
 						return serverSock.readyState;
 					},
 					send(data) {
-						const chunk = 数据转Uint8Array(data);
+						const chunk = hog(data);
 						if (chunk.byteLength <= SS单批最大字节) {
 							return SS入队发送(chunk);
 						}
@@ -1589,7 +1589,7 @@ async function 处理WS请求(request, yourUUID, url, 反代上下文 = {}) {
 				await forwardataTCP(上下文.目标主机, 上下文.目标端口, 明文块, 上下文.回包Socket, null, remoteConnWrapper, yourUUID, request, 反代上下文);
 				continue;
 			}
-			const 明文数据 = 数据转Uint8Array(明文块);
+			const 明文数据 = hog(明文块);
 			if (明文数据.byteLength < 3) throw new Error('invalid ss data');
 			const addressType = 明文数据[0];
 			let cursor = 1;
@@ -1633,7 +1633,7 @@ async function 处理WS请求(request, yourUUID, url, 反代上下文 = {}) {
 	const 处理WS入站数据 = async (chunk) => {
 		let 当前块字节 = null;
 		if (isDnsQuery) {
-			if (判断是否是木马) return await 转发木马UDP数据(chunk, serverSock, 木马UDP上下文, request);
+			if (判断是否是木马) return await hug(chunk, serverSock, 木马UDP上下文, request);
 			return await forwardataudp(chunk, serverSock, null, request);
 		}
 		if (判断协议类型 === 'ss') {
@@ -1649,7 +1649,7 @@ async function 处理WS请求(request, yourUUID, url, 反代上下文 = {}) {
 		if (判断协议类型 === null) {
 			if (url.searchParams.get('enc')) 判断协议类型 = 'ss';
 			else {
-				当前块字节 = 当前块字节 || 数据转Uint8Array(chunk);
+				当前块字节 = 当前块字节 || hog(chunk);
 				const bytes = 当前块字节;
 				判断协议类型 = bytes.byteLength >= 58 && bytes[56] === 0x0d && bytes[57] === 0x0a ? '木马' : '魏烈思';
 			}
@@ -1674,14 +1674,14 @@ async function 处理WS请求(request, yourUUID, url, 反代上下文 = {}) {
 				isDnsQuery = true;
 				木马UDP上下文.目标主机 = hostname;
 				木马UDP上下文.目标端口 = port;
-				if (木马UDP上下文.反代地址) return 转发木马UDP数据(当前块字节 || 数据转Uint8Array(chunk), serverSock, 木马UDP上下文, request);
-				if (有效数据长度(rawClientData) > 0) return 转发木马UDP数据(rawClientData, serverSock, 木马UDP上下文, request);
+				if (木马UDP上下文.反代地址) return hug(当前块字节 || hog(chunk), serverSock, 木马UDP上下文, request);
+				if (有效数据长度(rawClientData) > 0) return hug(rawClientData, serverSock, 木马UDP上下文, request);
 				return;
 			}
-			await forwardataTCP(hostname, port, rawClientData, serverSock, null, remoteConnWrapper, yourUUID, request, 反代上下文, true, 当前块字节 || 数据转Uint8Array(chunk));
+			await forwardataTCP(hostname, port, rawClientData, serverSock, null, remoteConnWrapper, yourUUID, request, 反代上下文, true, 当前块字节 || hog(chunk));
 		} else {
 			判断是否是木马 = false;
-			当前块字节 = 当前块字节 || 数据转Uint8Array(chunk);
+			当前块字节 = 当前块字节 || hog(chunk);
 			const bytes = 当前块字节;
 			const 解析结果 = 解析魏烈思请求(bytes, yourUUID);
 			if (解析结果?.hasError) throw new Error(解析结果.message || 'Invalid 魏烈思 request');
@@ -1697,7 +1697,7 @@ async function 处理WS请求(request, yourUUID, url, 反代上下文 = {}) {
 			}
 			const rawData = rawClientData;
 			if (isDnsQuery) {
-				if (判断是否是木马) return 转发木马UDP数据(rawData, serverSock, 木马UDP上下文, request);
+				if (判断是否是木马) return hug(rawData, serverSock, 木马UDP上下文, request);
 				return forwardataudp(rawData, serverSock, respHeader, request);
 			}
 			await forwardataTCP(hostname, port, rawData, serverSock, respHeader, remoteConnWrapper, yourUUID, request, 反代上下文);
@@ -1719,7 +1719,7 @@ async function 处理WS请求(request, yourUUID, url, 反代上下文 = {}) {
 		上行写入队列.清空();
 		释放远端写入器();
 		失效远端连接();
-		try { 木马UDP上下文.反代Socket?.close() } catch (e) { }
+		try { 木马UDP上下文.iq?.close() } catch (e) { }
 		closeSocketQuietly(serverSock);
 	};
 
@@ -1756,7 +1756,7 @@ async function 处理WS请求(request, yourUUID, url, 反代上下文 = {}) {
 			await 上行写入队列.等待空();
 			释放远端写入器();
 			失效远端连接();
-			try { 木马UDP上下文.反代Socket?.close() } catch (e) { }
+			try { 木马UDP上下文.iq?.close() } catch (e) { }
 		});
 	};
 
@@ -1805,13 +1805,13 @@ function bob(bod) {
 }
 async function 连接木马反代(首包数据, TCP连接, 木马反代目标) {
 	if (!木马反代目标) throw new Error('trojan fallback is not configured');
-	const socket = TCP连接({ hostname: stripIPv6Brackets(木马反代目标.hostname), port: 木马反代目标.port });
+	const socket = TCP连接({ hostname: hap(木马反代目标.hostname), port: 木马反代目标.port });
 	let writer = null;
 	try {
 		if (socket.opened) await socket.opened;
 		if (有效数据长度(首包数据) > 0) {
 			writer = socket.writable.getWriter();
-			await writer.write(数据转Uint8Array(首包数据));
+			await writer.write(hog(首包数据));
 		}
 		return socket;
 	} catch (error) {
@@ -1823,8 +1823,8 @@ async function 连接木马反代(首包数据, TCP连接, 木马反代目标) {
 }
 
 function 提取木马反代握手数据(首包数据, rawData) {
-	const 首包 = 数据转Uint8Array(首包数据);
-	const payload = 数据转Uint8Array(rawData);
+	const 首包 = hog(首包数据);
+	const payload = hog(rawData);
 	if (!payload.byteLength) return 首包;
 	const 握手长度 = 首包.byteLength - payload.byteLength;
 	if (握手长度 <= 0) return 首包;
@@ -1834,24 +1834,24 @@ function 提取木马反代握手数据(首包数据, rawData) {
 	return 首包.subarray(0, 握手长度);
 }
 
-async function 转发木马UDP反代数据(chunk, webSocket, 上下文, request) {
-	const data = 数据转Uint8Array(chunk);
-	if (!上下文.反代Socket) {
-		const TCP连接 = 创建请求TCP连接器(request);
-		const socket = await 连接木马反代(data, TCP连接, 上下文.反代地址);
-		上下文.反代Socket = socket;
-		socket.closed.catch(() => { }).finally(() => closeSocketQuietly(webSocket));
-		connectStreams(socket, webSocket, null, null);
+async function ic(ie, ig, ii, il) {
+	const io = hog(ie);
+	if (!ii.iq) {
+		const iv = iw(il);
+		const socket = await 连接木马反代(io, iv, ii.反代地址);
+		ii.iq = socket;
+		socket.closed.catch(() => { }).finally(() => closeSocketQuietly(ig));
+		connectStreams(socket, ig, null, null);
 		return;
 	}
-	if (!data.byteLength) return;
-	const writer = 上下文.反代Socket.writable.getWriter();
-	try { await writer.write(data) }
+	if (!io.byteLength) return;
+	const writer = ii.iq.writable.getWriter();
+	try { await writer.write(io) }
 	finally { try { writer.releaseLock() } catch (e) { } }
 }
 
 function 解析木马请求(buffer, passwordPlainText) {
-	const data = 数据转Uint8Array(buffer);
+	const data = hog(buffer);
 	const sha224Password = als(passwordPlainText);
 	if (data.byteLength < 58) return { hasError: true, message: "invalid data" };
 	let crLfIndex = 56;
@@ -1957,7 +1957,7 @@ function UUID字节匹配(data, offset, uuid) {
 }
 
 function 解析魏烈思请求(chunk, token) {
-	const data = 数据转Uint8Array(chunk);
+	const data = hog(chunk);
 	const length = data.byteLength;
 	if (length < 24) return { hasError: true, message: 'Invalid data' };
 	const version = data[0];
@@ -2015,28 +2015,26 @@ const SSAEAD标签长度 = 16, SSNonce长度 = 12;
 const SS子密钥信息 = new TextEncoder().encode('ss-subkey');
 const SS文本编码器 = new TextEncoder(), SS文本解码器 = new TextDecoder(), SS主密钥缓存 = new Map();
 
-function 数据转Uint8Array(data) {
-	if (data instanceof Uint8Array) return data;
-	if (data instanceof ArrayBuffer) return new Uint8Array(data);
-	if (ArrayBuffer.isView(data)) return new Uint8Array(data.buffer, data.byteOffset, data.byteLength);
-	return new Uint8Array(data || 0);
+function hog(hop) {
+	if (hop instanceof Uint8Array) return hop;
+	if (hop instanceof ArrayBuffer) return new Uint8Array(hop);
+	if (ArrayBuffer.isView(hop)) return new Uint8Array(hop.buffer, hop.byteOffset, hop.byteLength);
+	return new Uint8Array(hop || 0);
 }
-
-function 拼接字节数据(...chunkList) {
-	if (!chunkList || chunkList.length === 0) return new Uint8Array(0);
-	const chunks = chunkList.map(数据转Uint8Array);
-	const total = chunks.reduce((sum, c) => sum + c.byteLength, 0);
-	const result = new Uint8Array(total);
-	let offset = 0;
-	for (const c of chunks) { result.set(c, offset); offset += c.byteLength }
-	return result;
+function hot(...hoy) {
+	if (!hoy || hoy.length === 0) return new Uint8Array(0);
+	const hrt = hoy.map(hog);
+	const hua = hrt.reduce((sum, c) => sum + c.byteLength, 0);
+	const hub = new Uint8Array(hua);
+	let hud = 0;
+	for (const c of hrt) { hub.set(c, hud); hud += c.byteLength }
+	return hub;
 }
-
-async function 转发木马UDP数据(chunk, webSocket, 上下文, request) {
-	const 当前块 = 数据转Uint8Array(chunk);
-	if (上下文?.反代地址) return 转发木马UDP反代数据(当前块, webSocket, 上下文, request);
-	const 缓存块 = 上下文?.缓存 instanceof Uint8Array ? 上下文.缓存 : new Uint8Array(0);
-	const input = 缓存块.byteLength ? 拼接字节数据(缓存块, 当前块) : 当前块;
+async function hug(hum, hun, hus, hut) {
+	const ia = hog(hum);
+	if (hus?.反代地址) return ic(ia, hun, hus, hut);
+	const 缓存块 = hus?.缓存 instanceof Uint8Array ? hus.缓存 : new Uint8Array(0);
+	const input = 缓存块.byteLength ? hot(缓存块, ia) : ia;
 	let cursor = 0;
 
 	while (cursor < input.byteLength) {
@@ -2078,9 +2076,9 @@ async function 转发木马UDP数据(chunk, webSocket, 上下文, request) {
 		}
 
 		const dns响应上下文 = { 缓存: new Uint8Array(0) };
-		await forwardataudp(tcpDNS查询, webSocket, null, request, (dnsRespChunk) => {
-			const 当前响应块 = 数据转Uint8Array(dnsRespChunk);
-			const 响应输入 = dns响应上下文.缓存.byteLength ? 拼接字节数据(dns响应上下文.缓存, 当前响应块) : 当前响应块;
+		await forwardataudp(tcpDNS查询, hun, null, hut, (dnsRespChunk) => {
+			const 当前响应块 = hog(dnsRespChunk);
+			const 响应输入 = dns响应上下文.缓存.byteLength ? hot(dns响应上下文.缓存, 当前响应块) : 当前响应块;
 			const 响应帧列表 = [];
 			let responseCursor = 0;
 			while (responseCursor + 2 <= 响应输入.byteLength) {
@@ -2104,7 +2102,7 @@ async function 转发木马UDP数据(chunk, webSocket, 上下文, request) {
 		});
 	}
 
-	if (上下文) 上下文.缓存 = input.slice(cursor);
+	if (hus) hus.缓存 = input.slice(cursor);
 }
 
 function SS递增Nonce计数器(counter) {
@@ -2121,7 +2119,7 @@ async function SS派生主密钥(passwordText, keyLen) {
 			const input = new Uint8Array(prev.byteLength + pwBytes.byteLength);
 			input.set(prev, 0); input.set(pwBytes, prev.byteLength);
 			prev = new Uint8Array(await crypto.subtle.digest('MD5', input));
-			result = 拼接字节数据(result, prev);
+			result = hot(result, prev);
 		}
 		return result.slice(0, keyLen);
 	})();
@@ -2138,7 +2136,7 @@ async function SS派生会话密钥(config, masterKey, salt, usages) {
 	const subKey = new Uint8Array(config.keyLen);
 	let prev = new Uint8Array(0), written = 0, counter = 1;
 	while (written < config.keyLen) {
-		const input = 拼接字节数据(prev, SS子密钥信息, new Uint8Array([counter]));
+		const input = hot(prev, SS子密钥信息, new Uint8Array([counter]));
 		prev = new Uint8Array(await crypto.subtle.sign('HMAC', prkHmacKey, input));
 		const copyLen = Math.min(prev.byteLength, config.keyLen - written);
 		subKey.set(prev.subarray(0, copyLen), written);
@@ -2171,7 +2169,7 @@ async function forwardataTCP(host, portNum, rawData, ws, respHeader, remoteConnW
 	log(`[TCP转发] 目标: ${host}:${portNum} | 反代IP: ${ctx反代IP} | 反代兜底: ${ctx反代兜底 ? '是' : '否'} | 反代类型: ${ctx代理类型 || 'proxyip'} | 全局: ${ctx代理全局 ? '是' : '否'}`);
 	const 连接超时毫秒 = 1000;
 	let 已通过代理发送首包 = false;
-	const TCP连接 = 创建请求TCP连接器(request);
+	const TCP连接 = iw(request);
 	const 使用木马反代 = 允许木马反代 && (反代上下文.木马反代地址 || null);
 	const 木马反代目标 = 使用木马反代 ? 反代上下文.木马反代地址 : null;
 	const 木马反代握手数据 = 使用木马反代 ? 提取木马反代握手数据(木马反代首包数据, rawData) : null;
@@ -2229,7 +2227,7 @@ async function forwardataTCP(host, portNum, rawData, ws, respHeader, remoteConnW
 	async function 写入首包(remoteSock, data) {
 		if (有效数据长度(data) <= 0) return;
 		const writer = remoteSock.writable.getWriter();
-		try { await writer.write(数据转Uint8Array(data)) }
+		try { await writer.write(hog(data)) }
 		finally { try { writer.releaseLock() } catch (e) { } }
 	}
 
@@ -2257,7 +2255,7 @@ async function forwardataTCP(host, portNum, rawData, ws, respHeader, remoteConnW
 	}
 
 	async function 构建预加载竞速候选列表(address, port) {
-		if (!fang || isIPHostname(address)) return null;
+		if (!fang || hay(address)) return null;
 		log(`[TCP直连] 预加载竞速拨号开启，开始并发查询 ${address} 的 A/AAAA 记录`);
 		const [aRecords, aaaaRecords] = await Promise.all([
 			ado(address, 'A'),
@@ -2265,11 +2263,11 @@ async function forwardataTCP(host, portNum, rawData, ws, respHeader, remoteConnW
 		]);
 		const ipv4List = [...new Set(aRecords.flatMap(r => {
 			const data = r.data;
-			return r.type === 1 && typeof data === 'string' && isIPv4(data) ? [data] : [];
+			return r.type === 1 && typeof data === 'string' && hin(data) ? [data] : [];
 		}))];
 		const ipv6List = [...new Set(aaaaRecords.flatMap(r => {
 			const data = r.data;
-			return r.type === 28 && typeof data === 'string' && isIPHostname(data) ? [data] : [];
+			return r.type === 28 && typeof data === 'string' && hay(data) ? [data] : [];
 		}))];
 		const 拨号上限 = Math.max(1, fall | 0);
 		const ipList = ipv4List.length >= 拨号上限
@@ -2377,7 +2375,7 @@ async function forwardataTCP(host, portNum, rawData, ws, respHeader, remoteConnW
 					newSocket = await httpConnect(host, portNum, 本次首包数据, false, TCP连接, ctx代理参数);
 				} else if (ctx代理类型 === 'https') {
 					log(`[HTTPS代理] 代理到: ${host}:${portNum}`);
-					newSocket = isIPHostname(ctx代理参数.hostname)
+					newSocket = hay(ctx代理参数.hostname)
 						? await httpsConnect(host, portNum, 本次首包数据, TCP连接, ctx代理参数)
 						: await httpConnect(host, portNum, 本次首包数据, true, TCP连接, ctx代理参数);
 				} else if (ctx代理类型 === 'turn') {
@@ -2385,7 +2383,7 @@ async function forwardataTCP(host, portNum, rawData, ws, respHeader, remoteConnW
 					newSocket = await turnConnect(ctx代理参数, host, portNum, TCP连接);
 					if (有效数据长度(本次首包数据) > 0) {
 						const writer = newSocket.writable.getWriter();
-						try { await writer.write(数据转Uint8Array(本次首包数据)) }
+						try { await writer.write(hog(本次首包数据)) }
 						finally { try { writer.releaseLock() } catch (e) { } }
 					}
 				} else if (ctx代理类型 === 'sstp') {
@@ -2393,7 +2391,7 @@ async function forwardataTCP(host, portNum, rawData, ws, respHeader, remoteConnW
 					newSocket = await sstpConnect(ctx代理参数, host, portNum, TCP连接);
 					if (有效数据长度(本次首包数据) > 0) {
 						const writer = newSocket.writable.getWriter();
-						try { await writer.write(数据转Uint8Array(本次首包数据)) }
+						try { await writer.write(hog(本次首包数据)) }
 						finally { try { writer.releaseLock() } catch (e) { } }
 					}
 				} else {
@@ -2460,11 +2458,11 @@ async function forwardataTCP(host, portNum, rawData, ws, respHeader, remoteConnW
 }
 
 async function forwardataudp(udpChunk, webSocket, respHeader, request, 响应封装器 = null) {
-	const 请求数据 = 数据转Uint8Array(udpChunk);
+	const 请求数据 = hog(udpChunk);
 	const 请求字节数 = 请求数据.byteLength;
 	log(`[UDP转发] 收到 DNS 请求: ${请求字节数}B -> 8.8.4.4:53`);
 	try {
-		const TCP连接 = 创建请求TCP连接器(request);
+		const TCP连接 = iw(request);
 		const tcpSocket = TCP连接({ hostname: '8.8.4.4', port: 53 });
 		let 魏烈思Header = respHeader;
 		const writer = tcpSocket.writable.getWriter();
@@ -2473,14 +2471,14 @@ async function forwardataudp(udpChunk, webSocket, respHeader, request, 响应封
 		writer.releaseLock();
 		await tcpSocket.readable.pipeTo(new WritableStream({
 			async write(chunk) {
-				const 原始响应 = 数据转Uint8Array(chunk);
+				const 原始响应 = hog(chunk);
 				log(`[UDP转发] 收到 DNS 响应: ${原始响应.byteLength}B`);
 				const 封装结果 = 响应封装器 ? await 响应封装器(原始响应) : 原始响应;
 				const 发送片段列表 = Array.isArray(封装结果) ? 封装结果 : [封装结果];
 				if (!发送片段列表.length) return;
 				if (webSocket.readyState !== WebSocket.OPEN) return;
 				for (const fragment of 发送片段列表) {
-					const 转发响应 = 数据转Uint8Array(fragment);
+					const 转发响应 = hog(fragment);
 					if (!转发响应.byteLength) continue;
 					if (魏烈思Header) {
 						const response = new Uint8Array(魏烈思Header.length + 转发响应.byteLength);
@@ -2640,7 +2638,7 @@ function 创建上行Grain合包流(目标字节 = fade) {
 	return {
 		readable: identity.readable,
 		写入: async (chunk) => {
-			const data = 数据转Uint8Array(chunk);
+			const data = hog(chunk);
 			if (!data.byteLength) return;
 			if (data.byteLength >= 目标字节) {
 				清理定时器();
@@ -2777,7 +2775,7 @@ function 创建上行写入队列({ 获取写入器, 获取连接任务 = null, 
 		// 首包解析阶段既没有 writer 也没有连接任务；返回 false 交给上层继续协议解析。
 		// 已建立会话的重拨阶段则先收纳，drain 会等待新 writer，避免数据被误当成首包。
 		if (!获取写入器() && !获取连接任务?.()) return false;
-		const chunk = 数据转Uint8Array(data);
+		const chunk = hog(data);
 		if (!chunk.byteLength) return true;
 		const nextBytes = grain.字节数 + chunk.byteLength;
 		const nextItems = grain.条目数 + 1;
@@ -2950,7 +2948,7 @@ function 创建下行Grain发送器(webSocket, headerData = null, isActive = nul
 			if (停止已开始 || !当前发送器有效()) return;
 			活动直发数++;
 			try {
-				const chunk = 数据转Uint8Array(data);
+				const chunk = hog(data);
 				if (!chunk.byteLength) return;
 				await 串行发送原始块(chunk);
 			} catch (err) {
@@ -2965,7 +2963,7 @@ function 创建下行Grain发送器(webSocket, headerData = null, isActive = nul
 			if (停止已开始 || !当前发送器有效()) return;
 			活动发送数++;
 			try {
-				const chunk = 数据转Uint8Array(data);
+				const chunk = hog(data);
 				if (!chunk.byteLength) return;
 				let offset = 0;
 				const totalBytes = chunk.byteLength;
@@ -3102,7 +3100,7 @@ function 构造本地204响应(respHeader = null) {
 		'\r\n'
 	);
 	if (有效数据长度(respHeader) === 0) return 本地204响应;
-	const 协议响应头 = 数据转Uint8Array(respHeader);
+	const 协议响应头 = hog(respHeader);
 	const response = new Uint8Array(协议响应头.byteLength + 本地204响应.byteLength);
 	response.set(协议响应头, 0);
 	response.set(本地204响应, 协议响应头.byteLength);
@@ -3118,7 +3116,7 @@ function 构造WS本地204响应(respHeader = null) {
 		'\r\n'
 	);
 	if (有效数据长度(respHeader) === 0) return WS本地204响应;
-	const 协议响应头 = 数据转Uint8Array(respHeader);
+	const 协议响应头 = hog(respHeader);
 	const response = new Uint8Array(协议响应头.byteLength + WS本地204响应.byteLength);
 	response.set(协议响应头, 0);
 	response.set(WS本地204响应, 协议响应头.byteLength);
@@ -3225,7 +3223,7 @@ async function httpsConnect(targetHost, targetPort, initialData, TCP连接, pars
 	const encoder = new TextEncoder();
 	const decoder = new TextDecoder();
 	let tlsSocket = null;
-	const tlsServerName = isIPHostname(hostname) ? '' : stripIPv6Brackets(hostname);
+	const tlsServerName = hay(hostname) ? '' : hap(hostname);
 	const 打开HTTPS代理TLS = async (allowChacha = false) => {
 		const proxySocket = TCP连接({ hostname, port });
 		try {
@@ -3256,7 +3254,7 @@ async function httpsConnect(targetHost, targetPort, initialData, TCP连接, pars
 		while (headerEndIndex === -1 && bytesRead < 8192) {
 			const value = await tlsSocket.read();
 			if (!value) throw new Error('HTTPS 代理在返回 CONNECT 响应前关闭连接');
-			responseBuffer = 拼接字节数据(responseBuffer, value);
+			responseBuffer = hot(responseBuffer, value);
 			bytesRead = responseBuffer.length;
 			const crlfcrlf = responseBuffer.findIndex((_, i) => i < responseBuffer.length - 3 && responseBuffer[i] === 0x0d && responseBuffer[i + 1] === 0x0a && responseBuffer[i + 2] === 0x0d && responseBuffer[i + 3] === 0x0a);
 			if (crlfcrlf !== -1) headerEndIndex = crlfcrlf + 4;
@@ -3267,7 +3265,7 @@ async function httpsConnect(targetHost, targetPort, initialData, TCP连接, pars
 		const statusCode = statusMatch ? parseInt(statusMatch[1], 10) : NaN;
 		if (!Number.isFinite(statusCode) || statusCode < 200 || statusCode >= 300) throw new Error(`Connection failed: HTTP ${statusCode}`);
 
-		if (有效数据长度(initialData) > 0) await tlsSocket.write(数据转Uint8Array(initialData));
+		if (有效数据长度(initialData) > 0) await tlsSocket.write(hog(initialData));
 		const bufferedData = bytesRead > headerEndIndex ? responseBuffer.subarray(headerEndIndex, bytesRead) : null;
 		let closedSettled = false, resolveClosed, rejectClosed;
 		const settleClosed = (settle, value) => {
@@ -3306,7 +3304,7 @@ async function httpsConnect(targetHost, targetPort, initialData, TCP连接, pars
 		});
 		const writable = new WritableStream({
 			async write(chunk) {
-				await tlsSocket.write(数据转Uint8Array(chunk));
+				await tlsSocket.write(hog(chunk));
 			},
 			close,
 			abort(error) {
@@ -3320,27 +3318,22 @@ async function httpsConnect(targetHost, targetPort, initialData, TCP连接, pars
 		throw error;
 	}
 }
-
-function 创建请求TCP连接器(request) {
-	const 请求对象 = /** @type {any} */ (request);
-	const fetcher = 请求对象?.fetcher;
-	if (!fetcher || typeof fetcher.connect !== 'function') throw new Error('request.fetcher.connect unavailable');
-	return (options, init) => init === undefined ? fetcher.connect(options) : fetcher.connect(options, init);
+function iw(ix) {
+	const iaa = /** @type {any} */ (ix);
+	const icc = iaa?.fetcher;
+	if (!icc || typeof icc.connect !== 'function') throw new Error('request.fetcher.connect unavailable');
+	return (ice, icu) => icu === undefined ? icc.connect(ice) : icc.connect(ice, icu);
 }
-////////////////////////////////////////////TLSClient by: @Alexandre_Kojeve////////////////////////////////////////////////
-const TLS_VERSION_10 = 769, TLS_VERSION_12 = 771, TLS_VERSION_13 = 772;
-const CONTENT_TYPE_CHANGE_CIPHER_SPEC = 20, CONTENT_TYPE_ALERT = 21, CONTENT_TYPE_HANDSHAKE = 22, CONTENT_TYPE_APPLICATION_DATA = 23;
-const HANDSHAKE_TYPE_CLIENT_HELLO = 1, HANDSHAKE_TYPE_SERVER_HELLO = 2, HANDSHAKE_TYPE_NEW_SESSION_TICKET = 4, HANDSHAKE_TYPE_ENCRYPTED_EXTENSIONS = 8, HANDSHAKE_TYPE_CERTIFICATE = 11, HANDSHAKE_TYPE_SERVER_KEY_EXCHANGE = 12, HANDSHAKE_TYPE_CERTIFICATE_REQUEST = 13, HANDSHAKE_TYPE_SERVER_HELLO_DONE = 14, HANDSHAKE_TYPE_CERTIFICATE_VERIFY = 15, HANDSHAKE_TYPE_CLIENT_KEY_EXCHANGE = 16, HANDSHAKE_TYPE_FINISHED = 20, HANDSHAKE_TYPE_KEY_UPDATE = 24;
-const EXT_SERVER_NAME = 0, EXT_SUPPORTED_GROUPS = 10, EXT_EC_POINT_FORMATS = 11, EXT_SIGNATURE_ALGORITHMS = 13, EXT_APPLICATION_LAYER_PROTOCOL_NEGOTIATION = 16, EXT_SUPPORTED_VERSIONS = 43, EXT_PSK_KEY_EXCHANGE_MODES = 45, EXT_KEY_SHARE = 51;
-
-const ALERT_CLOSE_NOTIFY = 0, ALERT_LEVEL_WARNING = 1, ALERT_UNRECOGNIZED_NAME = 112;
-const shouldIgnoreTlsAlert = fragment => fragment?.[0] === ALERT_LEVEL_WARNING && fragment?.[1] === ALERT_UNRECOGNIZED_NAME;
-
-const textEncoder = new TextEncoder();
-const textDecoder = new TextDecoder();
-const EMPTY_BYTES = new Uint8Array(0);
-
-const CIPHER_SUITES_BY_ID = new Map([
+const icy = 769, ida = 771, idf = 772;
+const ido = 20, idp = 21, ied = 22, ifc = 23;
+const iga = 1, igd = 2, ige = 4, igg = 8, igm = 11, iii = 12, iis = 13, ike = 14, ilk = 15, ill = 16, ilo = 20, ilx = 24;
+const imf = 0, imo = 10, imp = 11, imu = 13, inc = 16, inh = 43, ink = 45, inn = 51;
+const inr = 0, ins = 1, ioc = 112;
+const ion = iop => iop?.[0] === ins && iop?.[1] === ioc;
+const iou = new TextEncoder();
+const ipo = new TextDecoder();
+const ipv = new Uint8Array(0);
+const ira = new Map([
 	[4865, { id: 4865, keyLen: 16, ivLen: 12, hash: "SHA-256", tls13: !0 }],
 	[4866, { id: 4866, keyLen: 32, ivLen: 12, hash: "SHA-384", tls13: !0 }],
 	[4867, { id: 4867, keyLen: 32, ivLen: 12, hash: "SHA-256", tls13: !0, chacha: !0 }],
@@ -3351,23 +3344,22 @@ const CIPHER_SUITES_BY_ID = new Map([
 	[49196, { id: 49196, keyLen: 32, ivLen: 4, hash: "SHA-384", kex: "ECDHE" }],
 	[52393, { id: 52393, keyLen: 32, ivLen: 12, hash: "SHA-256", kex: "ECDHE", chacha: !0 }]
 ]);
-const GROUPS_BY_ID = new Map([[29, "X25519"], [23, "P-256"]]);
-const SUPPORTED_SIGNATURE_ALGORITHMS = [2052, 2053, 2054, 1025, 1281, 1537, 1027, 1283, 1539];
-
-const tlsBytes = (...parts) => {
-	const flattenBytes = values => values.flatMap(value => value instanceof Uint8Array ? [...value] : Array.isArray(value) ? flattenBytes(value) : "number" == typeof value ? [value] : []);
-	return new Uint8Array(flattenBytes(parts))
+const ire = new Map([[29, "X25519"], [23, "P-256"]]);
+const irk = [2052, 2053, 2054, 1025, 1281, 1537, 1027, 1283, 1539];
+const irs = (...isi) => {
+	const ism = isn => isn.flatMap(iud => iud instanceof Uint8Array ? [...iud] : Array.isArray(iud) ? ism(iud) : "number" == typeof iud ? [iud] : []);
+	return new Uint8Array(ism(isi))
 };
-const uint16be = value => [value >> 8 & 255, 255 & value];
-const readUint16 = (buffer, offset) => buffer[offset] << 8 | buffer[offset + 1];
-const readUint24 = (buffer, offset) => buffer[offset] << 16 | buffer[offset + 1] << 8 | buffer[offset + 2];
-const concatBytes = (...chunks) => {
-	const nonEmptyChunks = chunks.filter((chunk => chunk && chunk.length > 0)),
-		length = nonEmptyChunks.reduce(((total, chunk) => total + chunk.length), 0),
-		result = new Uint8Array(length);
-	let offset = 0;
-	for (const chunk of nonEmptyChunks) result.set(chunk, offset), offset += chunk.length;
-	return result
+const iva = ivp => [ivp >> 8 & 255, 255 & ivp];
+const ivy = (iwo, iww) => iwo[iww] << 8 | iwo[iww + 1];
+const ixc = (ixl, ji) => ixl[ji] << 16 | ixl[ji + 1] << 8 | ixl[ji + 2];
+const jr = (...jv) => {
+	const jab = jv.filter((jag => jag && jag.length > 0)),
+		jak = jab.reduce(((jar, jat) => jar + jat.length), 0),
+		jam = new Uint8Array(jak);
+	let jan = 0;
+	for (const jap of jab) jam.set(jap, jan), jan += jap.length;
+	return jam
 };
 const randomBytes = length => crypto.getRandomValues(new Uint8Array(length));
 const constantTimeEqual = (left, right) => {
@@ -3382,13 +3374,13 @@ async function hmac(hash, key, data) {
 }
 async function digestBytes(hash, data) { return new Uint8Array(await crypto.subtle.digest(hash, data)) }
 async function tls12Prf(secret, label, seed, length, hash = "SHA-256") {
-	const labelSeed = concatBytes(textEncoder.encode(label), seed);
+	const labelSeed = jr(iou.encode(label), seed);
 	let output = new Uint8Array(0),
 		currentA = labelSeed;
 	for (; output.length < length;) {
 		currentA = await hmac(hash, secret, currentA);
-		const block = await hmac(hash, secret, concatBytes(currentA, labelSeed));
-		output = concatBytes(output, block)
+		const block = await hmac(hash, secret, jr(currentA, labelSeed));
+		output = jr(output, block)
 	}
 	return output.slice(0, length)
 }
@@ -3396,15 +3388,15 @@ async function hkdfExtract(hash, salt, inputKeyMaterial) {
 	return salt && salt.length || (salt = new Uint8Array(hashByteLength(hash))), hmac(hash, salt, inputKeyMaterial)
 }
 async function hkdfExpandLabel(hash, secret, label, context, length) {
-	const fullLabel = textEncoder.encode("tls13 " + label);
+	const fullLabel = iou.encode("tls13 " + label);
 	return async function (hash, secret, info, length) {
 		const hashLen = hashByteLength(hash),
 			roundCount = Math.ceil(length / hashLen);
 		let output = new Uint8Array(0),
 			previousBlock = new Uint8Array(0);
-		for (let round = 1; round <= roundCount; round++) previousBlock = await hmac(hash, secret, concatBytes(previousBlock, info, [round])), output = concatBytes(output, previousBlock);
+		for (let round = 1; round <= roundCount; round++) previousBlock = await hmac(hash, secret, jr(previousBlock, info, [round])), output = jr(output, previousBlock);
 		return output.slice(0, length)
-	}(hash, secret, tlsBytes(uint16be(length), fullLabel.length, fullLabel, context.length, context), length)
+	}(hash, secret, irs(iva(length), fullLabel.length, fullLabel, context.length, context), length)
 }
 async function generateKeyShare(group = "P-256") {
 	const algorithm = "X25519" === group ? { name: "X25519" } : { name: "ECDH", namedCurve: group };
@@ -3496,7 +3488,7 @@ function chacha20Poly1305Encrypt(key, nonce, plaintext, additionalData) {
 	const lengthView = new DataView(macData.buffer, additionalData.length + aadPadding + ciphertext.length + ciphertextPadding);
 	lengthView.setBigUint64(0, BigInt(additionalData.length), !0), lengthView.setBigUint64(8, BigInt(ciphertext.length), !0);
 	const tag = poly1305Mac(polyKey, macData);
-	return concatBytes(ciphertext, tag)
+	return jr(ciphertext, tag)
 }
 
 function chacha20Poly1305Decrypt(key, nonce, ciphertext, additionalData) {
@@ -3518,8 +3510,8 @@ function chacha20Poly1305Decrypt(key, nonce, ciphertext, additionalData) {
 }
 
 const TLS_MAX_PLAINTEXT_FRAGMENT = 16 * 1024;
-function buildTlsRecord(contentType, fragment, version = TLS_VERSION_12) {
-	const data = 数据转Uint8Array(fragment);
+function buildTlsRecord(contentType, fragment, version = ida) {
+	const data = hog(fragment);
 	const record = new Uint8Array(5 + data.byteLength);
 	record[0] = contentType;
 	record[1] = version >> 8 & 255;
@@ -3529,18 +3521,18 @@ function buildTlsRecord(contentType, fragment, version = TLS_VERSION_12) {
 	record.set(data, 5);
 	return record;
 }
-function buildHandshakeMessage(handshakeType, body) { return tlsBytes(handshakeType, (length => [length >> 16 & 255, length >> 8 & 255, 255 & length])(body.length), body) }
+function buildHandshakeMessage(handshakeType, body) { return irs(handshakeType, (length => [length >> 16 & 255, length >> 8 & 255, 255 & length])(body.length), body) }
 class TlsRecordParser {
 	constructor() { this.buffer = new Uint8Array(0) }
 	feed(chunk) {
-		const bytes = 数据转Uint8Array(chunk);
-		this.buffer = this.buffer.length ? concatBytes(this.buffer, bytes) : bytes
+		const bytes = hog(chunk);
+		this.buffer = this.buffer.length ? jr(this.buffer, bytes) : bytes
 	}
 	next() {
 		if (this.buffer.length < 5) return null;
 		const contentType = this.buffer[0],
-			version = readUint16(this.buffer, 1),
-			length = readUint16(this.buffer, 3);
+			version = ivy(this.buffer, 1),
+			length = ivy(this.buffer, 3);
 		if (this.buffer.length < 5 + length) return null;
 		const fragment = this.buffer.subarray(5, 5 + length);
 		return this.buffer = this.buffer.subarray(5 + length), { type: contentType, version, length, fragment }
@@ -3549,13 +3541,13 @@ class TlsRecordParser {
 class TlsHandshakeParser {
 	constructor() { this.buffer = new Uint8Array(0) }
 	feed(chunk) {
-		const bytes = 数据转Uint8Array(chunk);
-		this.buffer = this.buffer.length ? concatBytes(this.buffer, bytes) : bytes
+		const bytes = hog(chunk);
+		this.buffer = this.buffer.length ? jr(this.buffer, bytes) : bytes
 	}
 	next() {
 		if (this.buffer.length < 4) return null;
 		const handshakeType = this.buffer[0],
-			length = readUint24(this.buffer, 1);
+			length = ixc(this.buffer, 1);
 		if (this.buffer.length < 4 + length) return null;
 		const body = this.buffer.subarray(4, 4 + length),
 			raw = this.buffer.subarray(0, 4 + length);
@@ -3565,44 +3557,44 @@ class TlsHandshakeParser {
 
 function parseServerHello(body) {
 	let offset = 0;
-	const legacyVersion = readUint16(body, offset);
+	const legacyVersion = ivy(body, offset);
 	offset += 2;
 	const serverRandom = body.slice(offset, offset + 32);
 	offset += 32;
 	const sessionIdLength = body[offset++],
 		sessionId = body.slice(offset, offset + sessionIdLength);
 	offset += sessionIdLength;
-	const cipherSuite = readUint16(body, offset);
+	const cipherSuite = ivy(body, offset);
 	offset += 2;
 	const compression = body[offset++];
 	let selectedVersion = legacyVersion,
 		keyShare = null,
 		alpn = null;
 	if (offset < body.length) {
-		const extensionsLength = readUint16(body, offset);
+		const extensionsLength = ivy(body, offset);
 		offset += 2;
 		const extensionsEnd = offset + extensionsLength;
 		for (; offset + 4 <= extensionsEnd;) {
-			const extensionType = readUint16(body, offset);
+			const extensionType = ivy(body, offset);
 			offset += 2;
-			const extensionLength = readUint16(body, offset);
+			const extensionLength = ivy(body, offset);
 			offset += 2;
 			const extensionData = body.slice(offset, offset + extensionLength);
-			if (offset += extensionLength, extensionType === EXT_SUPPORTED_VERSIONS && extensionLength >= 2) selectedVersion = readUint16(extensionData, 0);
-			else if (extensionType === EXT_KEY_SHARE && extensionLength >= 4) {
-				const group = readUint16(extensionData, 0),
-					keyLength = readUint16(extensionData, 2);
+			if (offset += extensionLength, extensionType === inh && extensionLength >= 2) selectedVersion = ivy(extensionData, 0);
+			else if (extensionType === inn && extensionLength >= 4) {
+				const group = ivy(extensionData, 0),
+					keyLength = ivy(extensionData, 2);
 				keyShare = { group, key: extensionData.slice(4, 4 + keyLength) }
-			} else extensionType === EXT_APPLICATION_LAYER_PROTOCOL_NEGOTIATION && extensionLength >= 3 && (alpn = textDecoder.decode(extensionData.slice(3, 3 + extensionData[2])))
+			} else extensionType === inc && extensionLength >= 3 && (alpn = ipo.decode(extensionData.slice(3, 3 + extensionData[2])))
 		}
 	}
 	const helloRetryRequestRandom = new Uint8Array([207, 33, 173, 116, 229, 154, 97, 17, 190, 29, 140, 2, 30, 101, 184, 145, 194, 162, 17, 22, 122, 187, 140, 94, 7, 158, 9, 226, 200, 168, 51, 156]);
-	return { version: legacyVersion, serverRandom, sessionId, cipherSuite, compression, selectedVersion, keyShare, alpn, isHRR: constantTimeEqual(serverRandom, helloRetryRequestRandom), isTls13: selectedVersion === TLS_VERSION_13 }
+	return { version: legacyVersion, serverRandom, sessionId, cipherSuite, compression, selectedVersion, keyShare, alpn, isHRR: constantTimeEqual(serverRandom, helloRetryRequestRandom), isTls13: selectedVersion === idf }
 }
 
 function parseServerKeyExchange(body) {
 	let offset = 1;
-	const namedCurve = readUint16(body, offset);
+	const namedCurve = ivy(body, offset);
 	offset += 2;
 	const keyLength = body[offset++];
 	return { namedCurve, serverPublicKey: body.slice(offset, offset + keyLength) }
@@ -3615,23 +3607,23 @@ function extractLeafCertificate(body, hasContext = 0) {
 		offset += contextLength
 	}
 	if (offset + 3 > body.length) return null;
-	const certificateListLength = readUint24(body, offset);
+	const certificateListLength = ixc(body, offset);
 	if (offset += 3, !certificateListLength || offset + 3 > body.length) return null;
-	const certificateLength = readUint24(body, offset);
+	const certificateLength = ixc(body, offset);
 	return offset += 3, certificateLength ? body.slice(offset, offset + certificateLength) : null
 }
 
 function parseEncryptedExtensions(body) {
 	const parsed = { alpn: null };
 	let offset = 2;
-	const extensionsEnd = 2 + readUint16(body, 0);
+	const extensionsEnd = 2 + ivy(body, 0);
 	for (; offset + 4 <= extensionsEnd;) {
-		const extensionType = readUint16(body, offset);
+		const extensionType = ivy(body, offset);
 		offset += 2;
-		const extensionLength = readUint16(body, offset);
-		if (offset += 2, extensionType === EXT_APPLICATION_LAYER_PROTOCOL_NEGOTIATION && extensionLength >= 3) {
+		const extensionLength = ivy(body, offset);
+		if (offset += 2, extensionType === inc && extensionLength >= 3) {
 			const protocolLength = body[offset + 2];
-			protocolLength > 0 && offset + 3 + protocolLength <= offset + extensionLength && (parsed.alpn = textDecoder.decode(body.slice(offset + 3, offset + 3 + protocolLength)))
+			protocolLength > 0 && offset + 3 + protocolLength <= offset + extensionLength && (parsed.alpn = ipo.decode(body.slice(offset + 3, offset + 3 + protocolLength)))
 		}
 		offset += extensionLength
 	}
@@ -3641,34 +3633,34 @@ function parseEncryptedExtensions(body) {
 function buildClientHello(clientRandom, serverName, keyShares, { tls13: enableTls13 = !0, tls12: enableTls12 = !0, alpn = null, chacha = !0 } = {}) {
 	const cipherIds = [];
 	enableTls13 && cipherIds.push(4865, 4866, ...(chacha ? [4867] : [])), enableTls12 && cipherIds.push(49199, 49200, 49195, 49196, ...(chacha ? [52392, 52393] : []));
-	const cipherBytes = tlsBytes(...cipherIds.flatMap(uint16be)),
-		extensions = [tlsBytes(255, 1, 0, 1, 0)];
+	const cipherBytes = irs(...cipherIds.flatMap(iva)),
+		extensions = [irs(255, 1, 0, 1, 0)];
 	if (serverName) {
-		const serverNameBytes = textEncoder.encode(serverName),
-			serverNameList = tlsBytes(0, uint16be(serverNameBytes.length), serverNameBytes);
-		extensions.push(tlsBytes(uint16be(EXT_SERVER_NAME), uint16be(serverNameList.length + 2), uint16be(serverNameList.length), serverNameList))
+		const serverNameBytes = iou.encode(serverName),
+			serverNameList = irs(0, iva(serverNameBytes.length), serverNameBytes);
+		extensions.push(irs(iva(imf), iva(serverNameList.length + 2), iva(serverNameList.length), serverNameList))
 	}
-	extensions.push(tlsBytes(uint16be(EXT_EC_POINT_FORMATS), 0, 2, 1, 0)), extensions.push(tlsBytes(uint16be(EXT_SUPPORTED_GROUPS), 0, 6, 0, 4, 0, 29, 0, 23));
-	const signatureBytes = tlsBytes(...SUPPORTED_SIGNATURE_ALGORITHMS.flatMap(uint16be));
-	extensions.push(tlsBytes(uint16be(EXT_SIGNATURE_ALGORITHMS), uint16be(signatureBytes.length + 2), uint16be(signatureBytes.length), signatureBytes));
+	extensions.push(irs(iva(imp), 0, 2, 1, 0)), extensions.push(irs(iva(imo), 0, 6, 0, 4, 0, 29, 0, 23));
+	const signatureBytes = irs(...irk.flatMap(iva));
+	extensions.push(irs(iva(imu), iva(signatureBytes.length + 2), iva(signatureBytes.length), signatureBytes));
 	const protocols = Array.isArray(alpn) ? alpn.filter(Boolean) : alpn ? [alpn] : [];
 	if (protocols.length) {
-		const alpnBytes = concatBytes(...protocols.map((protocol => { const protocolBytes = textEncoder.encode(protocol); return tlsBytes(protocolBytes.length, protocolBytes) })));
-		extensions.push(tlsBytes(uint16be(EXT_APPLICATION_LAYER_PROTOCOL_NEGOTIATION), uint16be(alpnBytes.length + 2), uint16be(alpnBytes.length), alpnBytes))
+		const alpnBytes = jr(...protocols.map((protocol => { const protocolBytes = iou.encode(protocol); return irs(protocolBytes.length, protocolBytes) })));
+		extensions.push(irs(iva(inc), iva(alpnBytes.length + 2), iva(alpnBytes.length), alpnBytes))
 	}
 	if (enableTls13 && keyShares) {
 		let keyShareBytes;
-		if (extensions.push(enableTls12 ? tlsBytes(uint16be(EXT_SUPPORTED_VERSIONS), 0, 5, 4, 3, 4, 3, 3) : tlsBytes(uint16be(EXT_SUPPORTED_VERSIONS), 0, 3, 2, 3, 4)), extensions.push(tlsBytes(uint16be(EXT_PSK_KEY_EXCHANGE_MODES), 0, 2, 1, 1)), keyShares?.x25519 && keyShares?.p256) keyShareBytes = concatBytes(tlsBytes(0, 29, uint16be(keyShares.x25519.length), keyShares.x25519), tlsBytes(0, 23, uint16be(keyShares.p256.length), keyShares.p256));
-		else if (keyShares?.x25519) keyShareBytes = tlsBytes(0, 29, uint16be(keyShares.x25519.length), keyShares.x25519);
-		else if (keyShares?.p256) keyShareBytes = tlsBytes(0, 23, uint16be(keyShares.p256.length), keyShares.p256);
+		if (extensions.push(enableTls12 ? irs(iva(inh), 0, 5, 4, 3, 4, 3, 3) : irs(iva(inh), 0, 3, 2, 3, 4)), extensions.push(irs(iva(ink), 0, 2, 1, 1)), keyShares?.x25519 && keyShares?.p256) keyShareBytes = jr(irs(0, 29, iva(keyShares.x25519.length), keyShares.x25519), irs(0, 23, iva(keyShares.p256.length), keyShares.p256));
+		else if (keyShares?.x25519) keyShareBytes = irs(0, 29, iva(keyShares.x25519.length), keyShares.x25519);
+		else if (keyShares?.p256) keyShareBytes = irs(0, 23, iva(keyShares.p256.length), keyShares.p256);
 		else {
 			if (!(keyShares instanceof Uint8Array)) throw new Error("Invalid keyShares");
-			keyShareBytes = tlsBytes(0, 23, uint16be(keyShares.length), keyShares)
+			keyShareBytes = irs(0, 23, iva(keyShares.length), keyShares)
 		}
-		extensions.push(tlsBytes(uint16be(EXT_KEY_SHARE), uint16be(keyShareBytes.length + 2), uint16be(keyShareBytes.length), keyShareBytes))
+		extensions.push(irs(iva(inn), iva(keyShareBytes.length + 2), iva(keyShareBytes.length), keyShareBytes))
 	}
-	const extensionsBytes = concatBytes(...extensions);
-	return buildHandshakeMessage(HANDSHAKE_TYPE_CLIENT_HELLO, tlsBytes(uint16be(TLS_VERSION_12), clientRandom, 0, uint16be(cipherBytes.length), cipherBytes, 1, 0, uint16be(extensionsBytes.length), extensionsBytes))
+	const extensionsBytes = jr(...extensions);
+	return buildHandshakeMessage(iga, irs(iva(ida), clientRandom, 0, iva(cipherBytes.length), cipherBytes, 1, 0, iva(extensionsBytes.length), extensionsBytes))
 }
 const uint64be = sequenceNumber => { const bytes = new Uint8Array(8); return new DataView(bytes.buffer).setBigUint64(0, sequenceNumber, !1), bytes },
 	xorSequenceIntoIv = (initializationVector, sequenceNumber) => {
@@ -3677,15 +3669,15 @@ const uint64be = sequenceNumber => { const bytes = new Uint8Array(8); return new
 		for (let index = 0; index < 8; index++) nonce[nonce.length - 8 + index] ^= sequenceBytes[index];
 		return nonce
 	},
-	deriveTrafficKeys = (hash, secret, keyLen, ivLen) => Promise.all([hkdfExpandLabel(hash, secret, "key", EMPTY_BYTES, keyLen), hkdfExpandLabel(hash, secret, "iv", EMPTY_BYTES, ivLen)]);
+	deriveTrafficKeys = (hash, secret, keyLen, ivLen) => Promise.all([hkdfExpandLabel(hash, secret, "key", ipv, keyLen), hkdfExpandLabel(hash, secret, "iv", ipv, ivLen)]);
 class TlsClient {
 	constructor(socket, options = {}) {
 		if (this.socket = socket, this.serverName = options.serverName || "", this.supportTls13 = !1 !== options.tls13, this.supportTls12 = !1 !== options.tls12, !this.supportTls13 && !this.supportTls12) throw new Error("At least one TLS version must be enabled");
 		this.alpnProtocols = Array.isArray(options.alpn) ? options.alpn : options.alpn ? [options.alpn] : null, this.allowChacha = options.allowChacha !== false, this.timeout = options.timeout ?? 3e4, this.clientRandom = randomBytes(32), this.serverRandom = null, this.handshakeChunks = [], this.handshakeComplete = !1, this.negotiatedAlpn = null, this.cipherSuite = null, this.cipherConfig = null, this.isTls13 = !1, this.masterSecret = null, this.handshakeSecret = null, this.clientWriteKey = null, this.serverWriteKey = null, this.clientWriteIv = null, this.serverWriteIv = null, this.clientHandshakeKey = null, this.serverHandshakeKey = null, this.clientHandshakeIv = null, this.serverHandshakeIv = null, this.clientAppKey = null, this.serverAppKey = null, this.clientAppIv = null, this.serverAppIv = null, this.clientWriteCryptoKey = null, this.serverWriteCryptoKey = null, this.clientHandshakeCryptoKey = null, this.serverHandshakeCryptoKey = null, this.clientAppCryptoKey = null, this.serverAppCryptoKey = null, this.clientSeqNum = 0n, this.serverSeqNum = 0n, this.recordParser = new TlsRecordParser, this.handshakeParser = new TlsHandshakeParser, this.keyPairs = new Map, this.ecdhKeyPair = null, this.sawCert = !1
 	}
 	recordHandshake(chunk) { this.handshakeChunks.push(chunk) }
-	transcript() { return 1 === this.handshakeChunks.length ? this.handshakeChunks[0] : concatBytes(...this.handshakeChunks) }
-	getCipherConfig(cipherSuite) { return CIPHER_SUITES_BY_ID.get(cipherSuite) || null }
+	transcript() { return 1 === this.handshakeChunks.length ? this.handshakeChunks[0] : jr(...this.handshakeChunks) }
+	getCipherConfig(cipherSuite) { return ira.get(cipherSuite) || null }
 	async readChunk(reader) { return this.timeout ? Promise.race([reader.read(), new Promise(((resolve, reject) => setTimeout((() => reject(new Error("TLS read timeout"))), this.timeout)))]) : reader.read() }
 	async readRecordsUntil(reader, predicate, closedError) {
 		for (; ;) {
@@ -3701,11 +3693,11 @@ class TlsClient {
 		for (let message; message = this.handshakeParser.next();)
 			if (await predicate(message)) return;
 		return this.readRecordsUntil(reader, (async record => {
-			if (record.type === CONTENT_TYPE_ALERT) {
-				if (shouldIgnoreTlsAlert(record.fragment)) return;
+			if (record.type === idp) {
+				if (ion(record.fragment)) return;
 				throw new Error(`TLS Alert: ${record.fragment[1]}`);
 			}
-			if (record.type === CONTENT_TYPE_HANDSHAKE) {
+			if (record.type === ied) {
 				this.handshakeParser.feed(record.fragment);
 				for (let message; message = this.handshakeParser.next();)
 					if (await predicate(message)) return 1
@@ -3720,7 +3712,7 @@ class TlsClient {
 			writer = this.socket.writable.getWriter();
 		try {
 			const clientHello = buildClientHello(this.clientRandom, this.serverName, { x25519: x25519Share.publicKeyRaw, p256: p256Share.publicKeyRaw }, { tls13: this.supportTls13, tls12: this.supportTls12, alpn: this.alpnProtocols, chacha: this.allowChacha });
-			this.recordHandshake(clientHello), await writer.write(buildTlsRecord(CONTENT_TYPE_HANDSHAKE, clientHello, TLS_VERSION_10));
+			this.recordHandshake(clientHello), await writer.write(buildTlsRecord(ied, clientHello, icy));
 			const serverHello = await this.receiveServerHello(reader);
 			if (serverHello.isHRR) throw new Error("HelloRetryRequest is not supported by TLSClientMini");
 			if (serverHello.keyShare?.group && this.keyPairs.has(serverHello.keyShare.group)) {
@@ -3738,14 +3730,14 @@ class TlsClient {
 			if (done) throw new Error("Connection closed waiting for ServerHello");
 			let record;
 			for (this.recordParser.feed(value); record = this.recordParser.next();) {
-				if (record.type === CONTENT_TYPE_ALERT) {
-					if (shouldIgnoreTlsAlert(record.fragment)) continue;
+				if (record.type === idp) {
+					if (ion(record.fragment)) continue;
 					throw new Error(`TLS Alert: level=${record.fragment[0]}, desc=${record.fragment[1]}`);
 				}
-				if (record.type !== CONTENT_TYPE_HANDSHAKE) continue;
+				if (record.type !== ied) continue;
 				let message;
 				for (this.handshakeParser.feed(record.fragment); message = this.handshakeParser.next();) {
-					if (message.type !== HANDSHAKE_TYPE_SERVER_HELLO) continue;
+					if (message.type !== igd) continue;
 					this.recordHandshake(message.raw);
 					const serverHello = parseServerHello(message.body);
 					if (this.serverRandom = serverHello.serverRandom, this.cipherSuite = serverHello.cipherSuite, this.cipherConfig = this.getCipherConfig(serverHello.cipherSuite), this.isTls13 = serverHello.isTls13, this.negotiatedAlpn = serverHello.alpn || null, !this.cipherConfig) throw new Error(`Unsupported cipher suite: 0x${serverHello.cipherSuite.toString(16)}`);
@@ -3761,19 +3753,19 @@ class TlsClient {
 		let clientCertRequested = !1;
 		if (await this.readHandshakeUntil(reader, (async message => {
 			switch (message.type) {
-				case HANDSHAKE_TYPE_CERTIFICATE: {
+				case igm: {
 					this.recordHandshake(message.raw);
 					const certificate = extractLeafCertificate(message.body, 1);
 					if (!certificate) throw new Error("Missing TLS 1.2 certificate");
 					await this.acceptCertificate(certificate);
 					break
 				}
-				case HANDSHAKE_TYPE_SERVER_KEY_EXCHANGE:
+				case iii:
 					this.recordHandshake(message.raw), serverKeyExchange = parseServerKeyExchange(message.body);
 					break;
-				case HANDSHAKE_TYPE_SERVER_HELLO_DONE:
+				case ike:
 					return this.recordHandshake(message.raw), sawServerHelloDone = !0, 1;
-				case HANDSHAKE_TYPE_CERTIFICATE_REQUEST:
+				case iis:
 					this.recordHandshake(message.raw), clientCertRequested = !0;
 					break;
 				default:
@@ -3782,39 +3774,39 @@ class TlsClient {
 		}), "Connection closed during TLS 1.2 handshake"), !this.sawCert) throw new Error("Missing TLS 1.2 leaf certificate");
 		const serverKeyExchangeData = /** @type {{ namedCurve: number, serverPublicKey: Uint8Array } | null} */ (serverKeyExchange);
 		if (!serverKeyExchangeData) throw new Error("Missing TLS 1.2 ServerKeyExchange");
-		const curveName = GROUPS_BY_ID.get(serverKeyExchangeData.namedCurve);
+		const curveName = ire.get(serverKeyExchangeData.namedCurve);
 		if (!curveName) throw new Error(`Unsupported named curve: 0x${serverKeyExchangeData.namedCurve.toString(16)}`);
 		const keyShare = this.keyPairs.get(serverKeyExchangeData.namedCurve);
 		if (!keyShare) throw new Error(`Missing key pair for curve: 0x${serverKeyExchangeData.namedCurve.toString(16)}`);
 		const preMasterSecret = await deriveSharedSecret(keyShare.keyPair.privateKey, serverKeyExchangeData.serverPublicKey, curveName),
-			clientKeyExchange = buildHandshakeMessage(HANDSHAKE_TYPE_CLIENT_KEY_EXCHANGE, tlsBytes(keyShare.publicKeyRaw.length, keyShare.publicKeyRaw));
+			clientKeyExchange = buildHandshakeMessage(ill, irs(keyShare.publicKeyRaw.length, keyShare.publicKeyRaw));
 		if (clientCertRequested) {
-			const emptyCertificate = buildHandshakeMessage(HANDSHAKE_TYPE_CERTIFICATE, tlsBytes(0, 0, 0));
-			this.recordHandshake(emptyCertificate), await writer.write(buildTlsRecord(CONTENT_TYPE_HANDSHAKE, emptyCertificate))
+			const emptyCertificate = buildHandshakeMessage(igm, irs(0, 0, 0));
+			this.recordHandshake(emptyCertificate), await writer.write(buildTlsRecord(ied, emptyCertificate))
 		}
 		this.recordHandshake(clientKeyExchange);
 		const hashName = this.cipherConfig.hash;
-		this.masterSecret = await tls12Prf(preMasterSecret, "master secret", concatBytes(this.clientRandom, this.serverRandom), 48, hashName);
+		this.masterSecret = await tls12Prf(preMasterSecret, "master secret", jr(this.clientRandom, this.serverRandom), 48, hashName);
 		const keyLen = this.cipherConfig.keyLen,
 			ivLen = this.cipherConfig.ivLen,
-			keyBlock = await tls12Prf(this.masterSecret, "key expansion", concatBytes(this.serverRandom, this.clientRandom), 2 * keyLen + 2 * ivLen, hashName);
+			keyBlock = await tls12Prf(this.masterSecret, "key expansion", jr(this.serverRandom, this.clientRandom), 2 * keyLen + 2 * ivLen, hashName);
 		this.clientWriteKey = keyBlock.slice(0, keyLen), this.serverWriteKey = keyBlock.slice(keyLen, 2 * keyLen), this.clientWriteIv = keyBlock.slice(2 * keyLen, 2 * keyLen + ivLen), this.serverWriteIv = keyBlock.slice(2 * keyLen + ivLen, 2 * keyLen + 2 * ivLen);
 		if (!this.cipherConfig.chacha) [this.clientWriteCryptoKey, this.serverWriteCryptoKey] = await Promise.all([importAesGcmKey(this.clientWriteKey, ["encrypt"]), importAesGcmKey(this.serverWriteKey, ["decrypt"])]);
-		await writer.write(buildTlsRecord(CONTENT_TYPE_HANDSHAKE, clientKeyExchange)), await writer.write(buildTlsRecord(CONTENT_TYPE_CHANGE_CIPHER_SPEC, tlsBytes(1)));
+		await writer.write(buildTlsRecord(ied, clientKeyExchange)), await writer.write(buildTlsRecord(ido, irs(1)));
 		const clientVerifyData = await tls12Prf(this.masterSecret, "client finished", await digestBytes(hashName, this.transcript()), 12, hashName),
-			finishedMessage = buildHandshakeMessage(HANDSHAKE_TYPE_FINISHED, clientVerifyData);
-		this.recordHandshake(finishedMessage), await writer.write(buildTlsRecord(CONTENT_TYPE_HANDSHAKE, await this.encryptTls12(finishedMessage, CONTENT_TYPE_HANDSHAKE)));
+			finishedMessage = buildHandshakeMessage(ilo, clientVerifyData);
+		this.recordHandshake(finishedMessage), await writer.write(buildTlsRecord(ied, await this.encryptTls12(finishedMessage, ied)));
 		let sawChangeCipherSpec = !1;
 		await this.readRecordsUntil(reader, (async record => {
-			if (record.type === CONTENT_TYPE_ALERT) {
-				if (shouldIgnoreTlsAlert(record.fragment)) return;
+			if (record.type === idp) {
+				if (ion(record.fragment)) return;
 				throw new Error(`TLS Alert: ${record.fragment[1]}`);
 			}
-			if (record.type === CONTENT_TYPE_CHANGE_CIPHER_SPEC) return void (sawChangeCipherSpec = !0);
-			if (record.type !== CONTENT_TYPE_HANDSHAKE || !sawChangeCipherSpec) return;
-			const decrypted = await this.decryptTls12(record.fragment, CONTENT_TYPE_HANDSHAKE);
-			if (decrypted[0] !== HANDSHAKE_TYPE_FINISHED) return;
-			const verifyLength = readUint24(decrypted, 1),
+			if (record.type === ido) return void (sawChangeCipherSpec = !0);
+			if (record.type !== ied || !sawChangeCipherSpec) return;
+			const decrypted = await this.decryptTls12(record.fragment, ied);
+			if (decrypted[0] !== ilo) return;
+			const verifyLength = ixc(decrypted, 1),
 				verifyData = decrypted.slice(4, 4 + verifyLength),
 				expectedVerifyData = await tls12Prf(this.masterSecret, "server finished", await digestBytes(hashName, this.transcript()), 12, hashName);
 			if (!constantTimeEqual(verifyData, expectedVerifyData)) throw new Error("TLS 1.2 server Finished verify failed");
@@ -3822,7 +3814,7 @@ class TlsClient {
 		}), "Connection closed waiting for TLS 1.2 Finished")
 	}
 	async handshakeTls13(reader, writer, serverHello) {
-		const groupName = GROUPS_BY_ID.get(serverHello.keyShare?.group);
+		const groupName = ire.get(serverHello.keyShare?.group);
 		if (!groupName || !serverHello.keyShare?.key?.length) throw new Error("Missing TLS 1.3 key_share");
 		const hashName = this.cipherConfig.hash,
 			hashLen = hashByteLength(hashName),
@@ -3830,36 +3822,36 @@ class TlsClient {
 			ivLen = this.cipherConfig.ivLen,
 			sharedSecret = await deriveSharedSecret(this.ecdhKeyPair.privateKey, serverHello.keyShare.key, groupName),
 			earlySecret = await hkdfExtract(hashName, null, new Uint8Array(hashLen)),
-			derivedSecret = await hkdfExpandLabel(hashName, earlySecret, "derived", await digestBytes(hashName, EMPTY_BYTES), hashLen);
+			derivedSecret = await hkdfExpandLabel(hashName, earlySecret, "derived", await digestBytes(hashName, ipv), hashLen);
 		this.handshakeSecret = await hkdfExtract(hashName, derivedSecret, sharedSecret);
 		const transcriptHash = await digestBytes(hashName, this.transcript()),
 			clientHandshakeTrafficSecret = await hkdfExpandLabel(hashName, this.handshakeSecret, "c hs traffic", transcriptHash, hashLen),
 			serverHandshakeTrafficSecret = await hkdfExpandLabel(hashName, this.handshakeSecret, "s hs traffic", transcriptHash, hashLen);
 		[this.clientHandshakeKey, this.clientHandshakeIv] = await deriveTrafficKeys(hashName, clientHandshakeTrafficSecret, keyLen, ivLen), [this.serverHandshakeKey, this.serverHandshakeIv] = await deriveTrafficKeys(hashName, serverHandshakeTrafficSecret, keyLen, ivLen);
 		if (!this.cipherConfig.chacha) [this.clientHandshakeCryptoKey, this.serverHandshakeCryptoKey] = await Promise.all([importAesGcmKey(this.clientHandshakeKey, ["encrypt"]), importAesGcmKey(this.serverHandshakeKey, ["decrypt"])]);
-		const serverFinishedKey = await hkdfExpandLabel(hashName, serverHandshakeTrafficSecret, "finished", EMPTY_BYTES, hashLen);
+		const serverFinishedKey = await hkdfExpandLabel(hashName, serverHandshakeTrafficSecret, "finished", ipv, hashLen);
 		let serverFinishedReceived = !1;
 		let clientCertRequested = !1;
 		const handleHandshakeMessage = async message => {
 			switch (message.type) {
-				case HANDSHAKE_TYPE_ENCRYPTED_EXTENSIONS: {
+				case igg: {
 					const encryptedExtensions = parseEncryptedExtensions(message.body);
 					encryptedExtensions.alpn && (this.negotiatedAlpn = encryptedExtensions.alpn), this.recordHandshake(message.raw);
 					break
 				}
-				case HANDSHAKE_TYPE_CERTIFICATE: {
+				case igm: {
 					const certificate = extractLeafCertificate(message.body);
 					if (!certificate) throw new Error("Missing TLS 1.3 certificate");
 					await this.acceptCertificate(certificate), this.recordHandshake(message.raw);
 					break
 				}
-				case HANDSHAKE_TYPE_CERTIFICATE_REQUEST:
+				case iis:
 					this.recordHandshake(message.raw), clientCertRequested = !0;
 					break;
-				case HANDSHAKE_TYPE_CERTIFICATE_VERIFY:
+				case ilk:
 					this.recordHandshake(message.raw);
 					break;
-				case HANDSHAKE_TYPE_FINISHED: {
+				case ilo: {
 					const expectedVerifyData = await hmac(hashName, serverFinishedKey, await digestBytes(hashName, this.transcript()));
 					if (!constantTimeEqual(expectedVerifyData, message.body)) throw new Error("TLS 1.3 server Finished verify failed");
 					this.recordHandshake(message.raw), serverFinishedReceived = !0;
@@ -3870,90 +3862,90 @@ class TlsClient {
 			}
 		};
 		await this.readRecordsUntil(reader, (async record => {
-			if (record.type === CONTENT_TYPE_CHANGE_CIPHER_SPEC || record.type === CONTENT_TYPE_HANDSHAKE) return;
-			if (record.type === CONTENT_TYPE_ALERT) {
-				if (shouldIgnoreTlsAlert(record.fragment)) return;
+			if (record.type === ido || record.type === ied) return;
+			if (record.type === idp) {
+				if (ion(record.fragment)) return;
 				throw new Error(`TLS Alert: ${record.fragment[1]}`);
 			}
-			if (record.type !== CONTENT_TYPE_APPLICATION_DATA) return;
+			if (record.type !== ifc) return;
 			const decrypted = await this.decryptTls13Handshake(record.fragment),
 				innerType = decrypted[decrypted.length - 1],
 				plaintext = decrypted.slice(0, -1);
-			if (innerType === CONTENT_TYPE_HANDSHAKE) {
+			if (innerType === ied) {
 				this.handshakeParser.feed(plaintext);
 				for (let message; message = this.handshakeParser.next();)
 					if (await handleHandshakeMessage(message), serverFinishedReceived) return 1
 			}
 		}), "Connection closed during TLS 1.3 handshake");
 		const applicationTranscriptHash = await digestBytes(hashName, this.transcript()),
-			masterDerivedSecret = await hkdfExpandLabel(hashName, this.handshakeSecret, "derived", await digestBytes(hashName, EMPTY_BYTES), hashLen),
+			masterDerivedSecret = await hkdfExpandLabel(hashName, this.handshakeSecret, "derived", await digestBytes(hashName, ipv), hashLen),
 			masterSecret = await hkdfExtract(hashName, masterDerivedSecret, new Uint8Array(hashLen)),
 			clientAppTrafficSecret = await hkdfExpandLabel(hashName, masterSecret, "c ap traffic", applicationTranscriptHash, hashLen),
 			serverAppTrafficSecret = await hkdfExpandLabel(hashName, masterSecret, "s ap traffic", applicationTranscriptHash, hashLen);
 		[this.clientAppKey, this.clientAppIv] = await deriveTrafficKeys(hashName, clientAppTrafficSecret, keyLen, ivLen), [this.serverAppKey, this.serverAppIv] = await deriveTrafficKeys(hashName, serverAppTrafficSecret, keyLen, ivLen);
 		if (!this.cipherConfig.chacha) [this.clientAppCryptoKey, this.serverAppCryptoKey] = await Promise.all([importAesGcmKey(this.clientAppKey, ["encrypt"]), importAesGcmKey(this.serverAppKey, ["decrypt"])]);
-		let clientFlightHandshake = EMPTY_BYTES;
-		if (clientCertRequested) clientFlightHandshake = buildHandshakeMessage(HANDSHAKE_TYPE_CERTIFICATE, tlsBytes(0, 0, 0, 0)), this.recordHandshake(clientFlightHandshake);
-		const clientFinishedKey = await hkdfExpandLabel(hashName, clientHandshakeTrafficSecret, "finished", EMPTY_BYTES, hashLen),
+		let clientFlightHandshake = ipv;
+		if (clientCertRequested) clientFlightHandshake = buildHandshakeMessage(igm, irs(0, 0, 0, 0)), this.recordHandshake(clientFlightHandshake);
+		const clientFinishedKey = await hkdfExpandLabel(hashName, clientHandshakeTrafficSecret, "finished", ipv, hashLen),
 			clientFinishedVerifyData = await hmac(hashName, clientFinishedKey, await digestBytes(hashName, this.transcript())),
-			clientFinishedMessage = buildHandshakeMessage(HANDSHAKE_TYPE_FINISHED, clientFinishedVerifyData);
-		this.recordHandshake(clientFinishedMessage), await writer.write(buildTlsRecord(CONTENT_TYPE_APPLICATION_DATA, await this.encryptTls13Handshake(concatBytes(clientFlightHandshake, clientFinishedMessage, [CONTENT_TYPE_HANDSHAKE])))), this.clientSeqNum = 0n, this.serverSeqNum = 0n
+			clientFinishedMessage = buildHandshakeMessage(ilo, clientFinishedVerifyData);
+		this.recordHandshake(clientFinishedMessage), await writer.write(buildTlsRecord(ifc, await this.encryptTls13Handshake(jr(clientFlightHandshake, clientFinishedMessage, [ied])))), this.clientSeqNum = 0n, this.serverSeqNum = 0n
 	}
 	async encryptTls12(plaintext, contentType) {
 		const sequenceNumber = this.clientSeqNum++,
 			sequenceBytes = uint64be(sequenceNumber),
-			additionalData = concatBytes(sequenceBytes, [contentType], uint16be(TLS_VERSION_12), uint16be(plaintext.length));
+			additionalData = jr(sequenceBytes, [contentType], iva(ida), iva(plaintext.length));
 		if (this.cipherConfig.chacha) {
 			const nonce = xorSequenceIntoIv(this.clientWriteIv, sequenceNumber);
 			return chacha20Poly1305Encrypt(this.clientWriteKey, nonce, plaintext, additionalData)
 		}
 		const explicitNonce = randomBytes(8);
 		if (!this.clientWriteCryptoKey) this.clientWriteCryptoKey = await importAesGcmKey(this.clientWriteKey, ["encrypt"]);
-		return concatBytes(explicitNonce, await aesGcmEncryptWithKey(this.clientWriteCryptoKey, concatBytes(this.clientWriteIv, explicitNonce), plaintext, additionalData))
+		return jr(explicitNonce, await aesGcmEncryptWithKey(this.clientWriteCryptoKey, jr(this.clientWriteIv, explicitNonce), plaintext, additionalData))
 	}
 	async decryptTls12(ciphertext, contentType) {
 		const sequenceNumber = this.serverSeqNum++,
 			sequenceBytes = uint64be(sequenceNumber);
 		if (this.cipherConfig.chacha) {
 			const nonce = xorSequenceIntoIv(this.serverWriteIv, sequenceNumber);
-			return chacha20Poly1305Decrypt(this.serverWriteKey, nonce, ciphertext, concatBytes(sequenceBytes, [contentType], uint16be(TLS_VERSION_12), uint16be(ciphertext.length - 16)))
+			return chacha20Poly1305Decrypt(this.serverWriteKey, nonce, ciphertext, jr(sequenceBytes, [contentType], iva(ida), iva(ciphertext.length - 16)))
 		}
 		const explicitNonce = ciphertext.subarray(0, 8),
 			encryptedData = ciphertext.subarray(8);
 		if (!this.serverWriteCryptoKey) this.serverWriteCryptoKey = await importAesGcmKey(this.serverWriteKey, ["decrypt"]);
-		return aesGcmDecryptWithKey(this.serverWriteCryptoKey, concatBytes(this.serverWriteIv, explicitNonce), encryptedData, concatBytes(sequenceBytes, [contentType], uint16be(TLS_VERSION_12), uint16be(encryptedData.length - 16)))
+		return aesGcmDecryptWithKey(this.serverWriteCryptoKey, jr(this.serverWriteIv, explicitNonce), encryptedData, jr(sequenceBytes, [contentType], iva(ida), iva(encryptedData.length - 16)))
 	}
 	async encryptTls13Handshake(plaintext) {
 		const nonce = xorSequenceIntoIv(this.clientHandshakeIv, this.clientSeqNum++),
-			additionalData = tlsBytes(CONTENT_TYPE_APPLICATION_DATA, 3, 3, uint16be(plaintext.length + 16));
+			additionalData = irs(ifc, 3, 3, iva(plaintext.length + 16));
 		if (this.cipherConfig.chacha) return chacha20Poly1305Encrypt(this.clientHandshakeKey, nonce, plaintext, additionalData);
 		if (!this.clientHandshakeCryptoKey) this.clientHandshakeCryptoKey = await importAesGcmKey(this.clientHandshakeKey, ["encrypt"]);
 		return aesGcmEncryptWithKey(this.clientHandshakeCryptoKey, nonce, plaintext, additionalData)
 	}
 	async decryptTls13Handshake(ciphertext) {
 		const nonce = xorSequenceIntoIv(this.serverHandshakeIv, this.serverSeqNum++),
-			additionalData = tlsBytes(CONTENT_TYPE_APPLICATION_DATA, 3, 3, uint16be(ciphertext.length));
+			additionalData = irs(ifc, 3, 3, iva(ciphertext.length));
 		const decrypted = this.cipherConfig.chacha ? await chacha20Poly1305Decrypt(this.serverHandshakeKey, nonce, ciphertext, additionalData) : await aesGcmDecryptWithKey(this.serverHandshakeCryptoKey || (this.serverHandshakeCryptoKey = await importAesGcmKey(this.serverHandshakeKey, ["decrypt"])), nonce, ciphertext, additionalData);
 		let innerTypeIndex = decrypted.length - 1;
 		for (; innerTypeIndex >= 0 && !decrypted[innerTypeIndex];) innerTypeIndex--;
-		return innerTypeIndex < 0 ? EMPTY_BYTES : decrypted.slice(0, innerTypeIndex + 1)
+		return innerTypeIndex < 0 ? ipv : decrypted.slice(0, innerTypeIndex + 1)
 	}
 	async encryptTls13(data) {
-		const plaintext = concatBytes(data, [CONTENT_TYPE_APPLICATION_DATA]),
+		const plaintext = jr(data, [ifc]),
 			nonce = xorSequenceIntoIv(this.clientAppIv, this.clientSeqNum++),
-			additionalData = tlsBytes(CONTENT_TYPE_APPLICATION_DATA, 3, 3, uint16be(plaintext.length + 16));
+			additionalData = irs(ifc, 3, 3, iva(plaintext.length + 16));
 		if (this.cipherConfig.chacha) return chacha20Poly1305Encrypt(this.clientAppKey, nonce, plaintext, additionalData);
 		if (!this.clientAppCryptoKey) this.clientAppCryptoKey = await importAesGcmKey(this.clientAppKey, ["encrypt"]);
 		return aesGcmEncryptWithKey(this.clientAppCryptoKey, nonce, plaintext, additionalData)
 	}
 	async decryptTls13(ciphertext) {
 		const nonce = xorSequenceIntoIv(this.serverAppIv, this.serverSeqNum++),
-			additionalData = tlsBytes(CONTENT_TYPE_APPLICATION_DATA, 3, 3, uint16be(ciphertext.length)),
+			additionalData = irs(ifc, 3, 3, iva(ciphertext.length)),
 			plaintext = this.cipherConfig.chacha ? await chacha20Poly1305Decrypt(this.serverAppKey, nonce, ciphertext, additionalData) : await aesGcmDecryptWithKey(this.serverAppCryptoKey || (this.serverAppCryptoKey = await importAesGcmKey(this.serverAppKey, ["decrypt"])), nonce, ciphertext, additionalData);
 		let innerTypeIndex = plaintext.length - 1;
 		for (; innerTypeIndex >= 0 && !plaintext[innerTypeIndex];) innerTypeIndex--;
 		if (innerTypeIndex < 0) return {
-			data: EMPTY_BYTES,
+			data: ipv,
 			type: 0
 		};
 		return {
@@ -3963,17 +3955,17 @@ class TlsClient {
 	}
 	async write(data) {
 		if (!this.handshakeComplete) throw new Error("Handshake not complete");
-		const plaintext = 数据转Uint8Array(data);
+		const plaintext = hog(data);
 		if (!plaintext.byteLength) return;
 		const writer = this.socket.writable.getWriter();
 		try {
 			const records = [];
 			for (let offset = 0; offset < plaintext.byteLength; offset += TLS_MAX_PLAINTEXT_FRAGMENT) {
 				const chunk = plaintext.subarray(offset, Math.min(offset + TLS_MAX_PLAINTEXT_FRAGMENT, plaintext.byteLength));
-				const encrypted = this.isTls13 ? await this.encryptTls13(chunk) : await this.encryptTls12(chunk, CONTENT_TYPE_APPLICATION_DATA);
-				records.push(buildTlsRecord(CONTENT_TYPE_APPLICATION_DATA, encrypted));
+				const encrypted = this.isTls13 ? await this.encryptTls13(chunk) : await this.encryptTls12(chunk, ifc);
+				records.push(buildTlsRecord(ifc, encrypted));
 			}
-			await writer.write(records.length === 1 ? records[0] : concatBytes(...records))
+			await writer.write(records.length === 1 ? records[0] : jr(...records))
 		} finally {
 			writer.releaseLock()
 		}
@@ -3982,22 +3974,22 @@ class TlsClient {
 		for (; ;) {
 			let record;
 			for (; record = this.recordParser.next();) {
-				if (record.type === CONTENT_TYPE_ALERT) {
-					if (record.fragment[1] === ALERT_CLOSE_NOTIFY) return null;
+				if (record.type === idp) {
+					if (record.fragment[1] === inr) return null;
 					throw new Error(`TLS Alert: ${record.fragment[1]}`)
 				}
-				if (record.type !== CONTENT_TYPE_APPLICATION_DATA) continue;
-				if (!this.isTls13) return this.decryptTls12(record.fragment, CONTENT_TYPE_APPLICATION_DATA);
+				if (record.type !== ifc) continue;
+				if (!this.isTls13) return this.decryptTls12(record.fragment, ifc);
 				const { data, type } = await this.decryptTls13(record.fragment);
-				if (type === CONTENT_TYPE_APPLICATION_DATA) return data;
-				if (type === CONTENT_TYPE_ALERT) {
-					if (data[1] === ALERT_CLOSE_NOTIFY) return null;
+				if (type === ifc) return data;
+				if (type === idp) {
+					if (data[1] === inr) return null;
 					throw new Error(`TLS Alert: ${data[1]}`)
 				}
-				if (type !== CONTENT_TYPE_HANDSHAKE) continue;
+				if (type !== ied) continue;
 				let message;
 				for (this.handshakeParser.feed(data); message = this.handshakeParser.next();)
-					if (message.type !== HANDSHAKE_TYPE_NEW_SESSION_TICKET && message.type === HANDSHAKE_TYPE_KEY_UPDATE) throw new Error("TLS 1.3 KeyUpdate is not supported by TLSClientMini")
+					if (message.type !== ige && message.type === ilx) throw new Error("TLS 1.3 KeyUpdate is not supported by TLSClientMini")
 			}
 			const reader = this.socket.readable.getReader();
 			try {
@@ -4011,80 +4003,72 @@ class TlsClient {
 	}
 	close() { this.socket.close() }
 }
-
-function stripIPv6Brackets(hostname = '') {
-	const host = String(hostname || '').trim();
-	return host.startsWith('[') && host.endsWith(']') ? host.slice(1, -1) : host;
+function hap(hat = '') {
+	const haw = String(hat || '').trim();
+	return haw.startsWith('[') && haw.endsWith(']') ? haw.slice(1, -1) : haw;
 }
-
-function isIPHostname(hostname = '') {
-	const host = stripIPv6Brackets(hostname);
-	const ipv4Regex = /^(25[0-5]|2[0-4]\d|1?\d?\d)(\.(25[0-5]|2[0-4]\d|1?\d?\d)){3}$/;
-	if (ipv4Regex.test(host)) return true;
-	if (!host.includes(':')) return false;
+function hay(hcg = '') {
+	const hdl = hap(hcg);
+	const hel = /^(25[0-5]|2[0-4]\d|1?\d?\d)(\.(25[0-5]|2[0-4]\d|1?\d?\d)){3}$/;
+	if (hel.test(hdl)) return true;
+	if (!hdl.includes(':')) return false;
 	try {
-		new URL(`http://[${host}]/`);
+		new URL(`http://[${hdl}]/`);
 		return true;
 	} catch (e) {
 		return false;
 	}
 }
-
-//////////////////////////////////////////////////turnConnect///////////////////////////////////////////////
-const CONNECT_TIMEOUT_MS = 9999;
-const TURN_STUN_MAGIC_COOKIE = new Uint8Array([0x21, 0x12, 0xa4, 0x42]);
-const TURN_STUN_TYPE = {
+const hem = 9999;
+const hen = new Uint8Array([0x21, 0x12, 0xa4, 0x42]);
+const hep = {
 	ALLOCATE_REQUEST: 0x0003, ALLOCATE_SUCCESS: 0x0103, ALLOCATE_ERROR: 0x0113,
 	CREATE_PERMISSION_REQUEST: 0x0008, CREATE_PERMISSION_SUCCESS: 0x0108,
 	CONNECT_REQUEST: 0x000a, CONNECT_SUCCESS: 0x010a,
 	CONNECTION_BIND_REQUEST: 0x000b, CONNECTION_BIND_SUCCESS: 0x010b
 };
-const TURN_STUN_ATTR = {
+const het = {
 	USERNAME: 0x0006, MESSAGE_INTEGRITY: 0x0008, ERROR_CODE: 0x0009,
 	XOR_PEER_ADDRESS: 0x0012, REALM: 0x0014, NONCE: 0x0015,
 	REQUESTED_TRANSPORT: 0x0019, CONNECTION_ID: 0x002a
 };
-
-async function withTimeout(promise, timeoutMs, message) {
-	let timer;
+async function hew(hex, hfc, hhs) {
+	let hie;
 	try {
 		return await Promise.race([
-			promise,
-			new Promise((_, reject) => { timer = setTimeout(() => reject(new Error(message)), timeoutMs) })
+			hex,
+			new Promise((_, reject) => { hie = setTimeout(() => reject(new Error(hhs)), hfc) })
 		]);
 	} finally {
-		clearTimeout(timer);
+		clearTimeout(hie);
 	}
 }
-
-function isIPv4(value) {
-	const parts = String(value || '').split('.');
-	return parts.length === 4 && parts.every(part => /^\d{1,3}$/.test(part) && Number(part) >= 0 && Number(part) <= 255);
+function hin(hip) {
+	const hit = String(hip || '').split('.');
+	return hit.length === 4 && hit.every(part => /^\d{1,3}$/.test(part) && Number(part) >= 0 && Number(part) <= 255);
 }
-
-function turnStunPadding(length) {
-	return -length & 3;
+function hiv(hmo) {
+	return -hmo & 3;
 }
-
-function createTurnStunAttribute(type, value) {
-	const body = 数据转Uint8Array(value);
-	const attribute = new Uint8Array(4 + body.byteLength + turnStunPadding(body.byteLength));
+function hnd(hob, hod) {
+	const hoe = hog(hod);
+	const attribute = new Uint8Array(4 + hoe.byteLength + hiv(hoe.byteLength));
 	const view = new DataView(attribute.buffer);
-	view.setUint16(0, type);
-	view.setUint16(2, body.byteLength);
-	attribute.set(body, 4);
+	view.setUint16(0, hob);
+	view.setUint16(2, hoe.byteLength);
+	attribute.set(hoe, 4);
 	return attribute;
 }
 
 function createTurnStunMessage(type, transactionId, attributes) {
-	const body = 拼接字节数据(...attributes);
+	const body = hot(...attributes);
 	const header = new Uint8Array(20);
 	const view = new DataView(header.buffer);
 	view.setUint16(0, type);
 	view.setUint16(2, body.byteLength);
-	header.set(TURN_STUN_MAGIC_COOKIE, 4);
+	header.set(hen, 4);
 	header.set(transactionId, 8);
-	return 拼接字节数据(header, body);
+	return hot(header, body);
 }
 
 function parseTurnErrorCode(data) {
@@ -4101,15 +4085,15 @@ async function addTurnMessageIntegrity(message, key) {
 	view.setUint16(2, view.getUint16(2) + 24);
 	const hmacKey = await crypto.subtle.importKey('raw', key, { name: 'HMAC', hash: 'SHA-1' }, false, ['sign']);
 	const signature = await crypto.subtle.sign('HMAC', hmacKey, signedMessage);
-	return 拼接字节数据(signedMessage, createTurnStunAttribute(TURN_STUN_ATTR.MESSAGE_INTEGRITY, new Uint8Array(signature)));
+	return hot(signedMessage, hnd(het.MESSAGE_INTEGRITY, new Uint8Array(signature)));
 }
 
 async function readTurnStunMessage(reader, bufferedData = null, timeoutMessage = 'TURN response timed out') {
-	let buffer = 有效数据长度(bufferedData) ? 数据转Uint8Array(bufferedData) : new Uint8Array(0);
+	let buffer = 有效数据长度(bufferedData) ? hog(bufferedData) : new Uint8Array(0);
 	const pull = async () => {
-		const { done, value } = await withTimeout(reader.read(), CONNECT_TIMEOUT_MS, timeoutMessage);
+		const { done, value } = await hew(reader.read(), hem, timeoutMessage);
 		if (done) throw new Error('TURN server closed connection');
-		if (value?.byteLength) buffer = 拼接字节数据(buffer, value);
+		if (value?.byteLength) buffer = hot(buffer, value);
 	};
 	while (buffer.byteLength < 20) await pull();
 
@@ -4117,7 +4101,7 @@ async function readTurnStunMessage(reader, bufferedData = null, timeoutMessage =
 	if (messageLength > 65555) throw new Error('TURN response is too large');
 	while (buffer.byteLength < messageLength) await pull();
 	const messageBuffer = buffer.subarray(0, messageLength);
-	if (TURN_STUN_MAGIC_COOKIE.some((value, index) => messageBuffer[4 + index] !== value)) throw new Error('Invalid TURN/STUN response');
+	if (hen.some((value, index) => messageBuffer[4 + index] !== value)) throw new Error('Invalid TURN/STUN response');
 
 	const view = new DataView(messageBuffer.buffer, messageBuffer.byteOffset, messageBuffer.byteLength);
 	const attributes = {};
@@ -4126,7 +4110,7 @@ async function readTurnStunMessage(reader, bufferedData = null, timeoutMessage =
 		const length = view.getUint16(offset + 2);
 		if (offset + 4 + length > messageBuffer.byteLength) break;
 		attributes[type] = messageBuffer.slice(offset + 4, offset + 4 + length);
-		offset += 4 + length + turnStunPadding(length);
+		offset += 4 + length + hiv(length);
 	}
 	return {
 		message: { type: view.getUint16(0), attributes },
@@ -4135,22 +4119,22 @@ async function readTurnStunMessage(reader, bufferedData = null, timeoutMessage =
 }
 
 async function writeTurnBytes(writer, bytes, timeoutMessage) {
-	await withTimeout(writer.write(bytes), CONNECT_TIMEOUT_MS, timeoutMessage);
+	await hew(writer.write(bytes), hem, timeoutMessage);
 }
 
 async function turnConnect(proxy, targetHost, targetPort, TCP连接) {
 	proxy = { ...proxy, username: proxy.username ?? null, password: proxy.password ?? null };
-	const resolvedTargetHost = stripIPv6Brackets(targetHost);
+	const resolvedTargetHost = hap(targetHost);
 	/** @type {string | null} */
-	let targetIp = isIPv4(resolvedTargetHost) ? resolvedTargetHost : null;
+	let targetIp = hin(resolvedTargetHost) ? resolvedTargetHost : null;
 	if (!targetIp) {
 		const records = await ado(resolvedTargetHost, 'A');
-		const recordData = records.find(item => item.type === 1 && isIPv4(item.data))?.data;
+		const recordData = records.find(item => item.type === 1 && hin(item.data))?.data;
 		targetIp = typeof recordData === 'string' ? recordData : null;
 	}
 	if (!targetIp) throw new Error(`Could not resolve ${targetHost} to an IPv4 address for TURN CONNECT`);
 
-	const turnHost = stripIPv6Brackets(proxy.hostname);
+	const turnHost = hap(proxy.hostname);
 	let controlSocket = null, dataSocket = null, controlWriter = null, controlReader = null, dataWriter = null, dataReader = null, dataReaderReleased = false;
 	const close = () => {
 		try { controlSocket?.close?.() } catch (e) { }
@@ -4164,7 +4148,7 @@ async function turnConnect(proxy, targetHost, targetPort, TCP连接) {
 
 	try {
 		controlSocket = TCP连接({ hostname: turnHost, port: proxy.port });
-		await withTimeout(controlSocket.opened, CONNECT_TIMEOUT_MS, 'TURN server connection timed out');
+		await hew(controlSocket.opened, hem, 'TURN server connection timed out');
 		controlWriter = controlSocket.writable.getWriter();
 		controlReader = controlSocket.readable.getReader();
 
@@ -4172,15 +4156,15 @@ async function turnConnect(proxy, targetHost, targetPort, TCP连接) {
 		xorPeerAddress[1] = 1;
 		new DataView(xorPeerAddress.buffer).setUint16(2, targetPort ^ 0x2112);
 		targetIp.split('.').forEach((value, index) => {
-			xorPeerAddress[4 + index] = Number(value) ^ TURN_STUN_MAGIC_COOKIE[index];
+			xorPeerAddress[4 + index] = Number(value) ^ hen[index];
 		});
-		const peerAddress = createTurnStunAttribute(TURN_STUN_ATTR.XOR_PEER_ADDRESS, xorPeerAddress);
+		const peerAddress = hnd(het.XOR_PEER_ADDRESS, xorPeerAddress);
 		const requestedTransport = new Uint8Array([6, 0, 0, 0]);
 
 		await writeTurnBytes(controlWriter, createTurnStunMessage(
-			TURN_STUN_TYPE.ALLOCATE_REQUEST,
+			hep.ALLOCATE_REQUEST,
 			randomTurnTransactionId(),
-			[createTurnStunAttribute(TURN_STUN_ATTR.REQUESTED_TRANSPORT, requestedTransport)]
+			[hnd(het.REQUESTED_TRANSPORT, requestedTransport)]
 		), 'TURN Allocate request timed out');
 
 		let turnResponse = await readTurnStunMessage(controlReader, null, 'TURN Allocate response timed out');
@@ -4191,49 +4175,49 @@ async function turnConnect(proxy, targetHost, targetPort, TCP连接) {
 		const sign = messageToSign => integrityKey ? addTurnMessageIntegrity(messageToSign, integrityKey) : Promise.resolve(messageToSign);
 
 		if (
-			message.type === TURN_STUN_TYPE.ALLOCATE_ERROR
+			message.type === hep.ALLOCATE_ERROR
 			&& proxy.username !== null
 			&& proxy.password !== null
-			&& parseTurnErrorCode(message.attributes[TURN_STUN_ATTR.ERROR_CODE]) === 401
+			&& parseTurnErrorCode(message.attributes[het.ERROR_CODE]) === 401
 		) {
-			const realmBytes = message.attributes[TURN_STUN_ATTR.REALM];
-			const nonce = message.attributes[TURN_STUN_ATTR.NONCE];
+			const realmBytes = message.attributes[het.REALM];
+			const nonce = message.attributes[het.NONCE];
 			if (!realmBytes || !nonce?.byteLength) throw new Error('TURN authentication challenge is missing realm or nonce');
 
-			const realm = textDecoder.decode(realmBytes);
-			integrityKey = new Uint8Array(await crypto.subtle.digest('MD5', textEncoder.encode(`${proxy.username}:${realm}:${proxy.password}`)));
+			const realm = ipo.decode(realmBytes);
+			integrityKey = new Uint8Array(await crypto.subtle.digest('MD5', iou.encode(`${proxy.username}:${realm}:${proxy.password}`)));
 			authAttributes = [
-				createTurnStunAttribute(TURN_STUN_ATTR.USERNAME, textEncoder.encode(proxy.username)),
-				createTurnStunAttribute(TURN_STUN_ATTR.REALM, textEncoder.encode(realm)),
-				createTurnStunAttribute(TURN_STUN_ATTR.NONCE, nonce)
+				hnd(het.USERNAME, iou.encode(proxy.username)),
+				hnd(het.REALM, iou.encode(realm)),
+				hnd(het.NONCE, nonce)
 			];
 
 			const allocateRequest = await addTurnMessageIntegrity(createTurnStunMessage(
-				TURN_STUN_TYPE.ALLOCATE_REQUEST,
+				hep.ALLOCATE_REQUEST,
 				randomTurnTransactionId(),
 				[
-					createTurnStunAttribute(TURN_STUN_ATTR.REQUESTED_TRANSPORT, requestedTransport),
+					hnd(het.REQUESTED_TRANSPORT, requestedTransport),
 					...authAttributes
 				]
 			), integrityKey);
 			const pipelinedMessages = await Promise.all([
-				sign(createTurnStunMessage(TURN_STUN_TYPE.CREATE_PERMISSION_REQUEST, randomTurnTransactionId(), [peerAddress, ...authAttributes])),
-				sign(createTurnStunMessage(TURN_STUN_TYPE.CONNECT_REQUEST, randomTurnTransactionId(), [peerAddress, ...authAttributes]))
+				sign(createTurnStunMessage(hep.CREATE_PERMISSION_REQUEST, randomTurnTransactionId(), [peerAddress, ...authAttributes])),
+				sign(createTurnStunMessage(hep.CONNECT_REQUEST, randomTurnTransactionId(), [peerAddress, ...authAttributes]))
 			]);
-			await writeTurnBytes(controlWriter, 拼接字节数据(allocateRequest, ...pipelinedMessages), 'TURN authenticated Allocate request timed out');
+			await writeTurnBytes(controlWriter, hot(allocateRequest, ...pipelinedMessages), 'TURN authenticated Allocate request timed out');
 			turnResponse = await readTurnStunMessage(controlReader, bufferedData, 'TURN authenticated Allocate response timed out');
 			message = turnResponse.message;
 			bufferedData = turnResponse.extraData;
-		} else if (message.type === TURN_STUN_TYPE.ALLOCATE_SUCCESS) {
+		} else if (message.type === hep.ALLOCATE_SUCCESS) {
 			const pipelinedMessages = await Promise.all([
-				sign(createTurnStunMessage(TURN_STUN_TYPE.CREATE_PERMISSION_REQUEST, randomTurnTransactionId(), [peerAddress, ...authAttributes])),
-				sign(createTurnStunMessage(TURN_STUN_TYPE.CONNECT_REQUEST, randomTurnTransactionId(), [peerAddress, ...authAttributes]))
+				sign(createTurnStunMessage(hep.CREATE_PERMISSION_REQUEST, randomTurnTransactionId(), [peerAddress, ...authAttributes])),
+				sign(createTurnStunMessage(hep.CONNECT_REQUEST, randomTurnTransactionId(), [peerAddress, ...authAttributes]))
 			]);
-			if (pipelinedMessages.length) await writeTurnBytes(controlWriter, 拼接字节数据(...pipelinedMessages), 'TURN pipelined request timed out');
+			if (pipelinedMessages.length) await writeTurnBytes(controlWriter, hot(...pipelinedMessages), 'TURN pipelined request timed out');
 		}
 
-		if (message.type !== TURN_STUN_TYPE.ALLOCATE_SUCCESS) {
-			const errorCode = parseTurnErrorCode(message.attributes[TURN_STUN_ATTR.ERROR_CODE]);
+		if (message.type !== hep.ALLOCATE_SUCCESS) {
+			const errorCode = parseTurnErrorCode(message.attributes[het.ERROR_CODE]);
 			throw new Error(errorCode ? `TURN Allocate failed with ${errorCode}` : 'TURN Allocate failed');
 		}
 
@@ -4241,21 +4225,21 @@ async function turnConnect(proxy, targetHost, targetPort, TCP连接) {
 		turnResponse = await readTurnStunMessage(controlReader, bufferedData, 'TURN CreatePermission response timed out');
 		message = turnResponse.message;
 		bufferedData = turnResponse.extraData;
-		if (message.type !== TURN_STUN_TYPE.CREATE_PERMISSION_SUCCESS) throw new Error('TURN CreatePermission failed');
+		if (message.type !== hep.CREATE_PERMISSION_SUCCESS) throw new Error('TURN CreatePermission failed');
 
 		turnResponse = await readTurnStunMessage(controlReader, bufferedData, 'TURN CONNECT response timed out');
 		message = turnResponse.message;
 		bufferedData = turnResponse.extraData;
-		if (message.type !== TURN_STUN_TYPE.CONNECT_SUCCESS || !message.attributes[TURN_STUN_ATTR.CONNECTION_ID]) throw new Error('TURN CONNECT failed');
+		if (message.type !== hep.CONNECT_SUCCESS || !message.attributes[het.CONNECTION_ID]) throw new Error('TURN CONNECT failed');
 
-		await withTimeout(dataSocket.opened, CONNECT_TIMEOUT_MS, 'TURN data connection timed out');
+		await hew(dataSocket.opened, hem, 'TURN data connection timed out');
 		dataWriter = dataSocket.writable.getWriter();
 		dataReader = dataSocket.readable.getReader();
 		await writeTurnBytes(dataWriter, await sign(createTurnStunMessage(
-			TURN_STUN_TYPE.CONNECTION_BIND_REQUEST,
+			hep.CONNECTION_BIND_REQUEST,
 			randomTurnTransactionId(),
 			[
-				createTurnStunAttribute(TURN_STUN_ATTR.CONNECTION_ID, message.attributes[TURN_STUN_ATTR.CONNECTION_ID]),
+				hnd(het.CONNECTION_ID, message.attributes[het.CONNECTION_ID]),
 				...authAttributes
 			]
 		)), 'TURN ConnectionBind request timed out');
@@ -4263,7 +4247,7 @@ async function turnConnect(proxy, targetHost, targetPort, TCP连接) {
 		turnResponse = await readTurnStunMessage(dataReader, null, 'TURN ConnectionBind response timed out');
 		message = turnResponse.message;
 		const extraPayload = turnResponse.extraData;
-		if (message.type !== TURN_STUN_TYPE.CONNECTION_BIND_SUCCESS) throw new Error('TURN ConnectionBind failed');
+		if (message.type !== hep.CONNECTION_BIND_SUCCESS) throw new Error('TURN ConnectionBind failed');
 
 		controlWriter.releaseLock();
 		controlWriter = null;
@@ -4350,12 +4334,12 @@ async function sstpConnect(proxy, targetHost, targetPort, TCP连接) {
 	const readSocketChunk = async () => {
 		const { value, done } = await reader.read();
 		if (done || !value) throw new Error('SSTP socket closed');
-		return 数据转Uint8Array(value);
+		return hog(value);
 	};
 	const readBytes = async length => {
 		while (bufferedBytes.byteLength < length) {
 			const chunk = await readSocketChunk();
-			bufferedBytes = bufferedBytes.byteLength ? 拼接字节数据(bufferedBytes, chunk) : chunk;
+			bufferedBytes = bufferedBytes.byteLength ? hot(bufferedBytes, chunk) : chunk;
 		}
 		const result = bufferedBytes.subarray(0, length);
 		bufferedBytes = bufferedBytes.subarray(length);
@@ -4365,21 +4349,21 @@ async function sstpConnect(proxy, targetHost, targetPort, TCP连接) {
 		for (; ;) {
 			const lineEnd = bufferedBytes.indexOf(10);
 			if (lineEnd >= 0) {
-				const line = textDecoder.decode(bufferedBytes.subarray(0, lineEnd));
+				const line = ipo.decode(bufferedBytes.subarray(0, lineEnd));
 				bufferedBytes = bufferedBytes.subarray(lineEnd + 1);
 				return line.replace(/\r$/, '');
 			}
 			const chunk = await readSocketChunk();
-			bufferedBytes = bufferedBytes.byteLength ? 拼接字节数据(bufferedBytes, chunk) : chunk;
+			bufferedBytes = bufferedBytes.byteLength ? hot(bufferedBytes, chunk) : chunk;
 		}
 	};
-	const readPacket = async (timeoutMs = CONNECT_TIMEOUT_MS) => {
-		const header = await withTimeout(readBytes(4), timeoutMs, 'SSTP read timeout');
+	const readPacket = async (timeoutMs = hem) => {
+		const header = await hew(readBytes(4), timeoutMs, 'SSTP read timeout');
 		const length = readSstpUint16(header, 2) & 0x0fff;
 		if (length < 4) throw new Error('Invalid SSTP packet length');
 		return {
 			isControl: (header[1] & 1) !== 0,
-			body: length > 4 ? await withTimeout(readBytes(length - 4), timeoutMs, 'SSTP packet body read timeout') : SSTP_EMPTY_BYTES
+			body: length > 4 ? await hew(readBytes(length - 4), timeoutMs, 'SSTP packet body read timeout') : SSTP_EMPTY_BYTES
 		};
 	};
 	const buildSstpDataPacket = pppFrame => {
@@ -4426,15 +4410,15 @@ async function sstpConnect(proxy, targetHost, targetPort, TCP连接) {
 	};
 
 	try {
-		const serverHost = stripIPv6Brackets(proxy.hostname);
+		const serverHost = hap(proxy.hostname);
 		const serverPort = proxy.port;
 		socket = TCP连接({ hostname: serverHost, port: serverPort }, { secureTransport: 'on', allowHalfOpen: false });
-		await withTimeout(socket.opened, CONNECT_TIMEOUT_MS, 'SSTP server connection timed out');
+		await hew(socket.opened, hem, 'SSTP server connection timed out');
 		reader = socket.readable.getReader();
 		writer = socket.writable.getWriter();
 
 		const displayHost = serverHost.includes(':') ? `[${serverHost}]` : serverHost;
-		const httpRequest = textEncoder.encode(
+		const httpRequest = iou.encode(
 			`SSTP_DUPLEX_POST /sra_{BA195980-CD49-458b-9E23-C84EE0ADCD75}/ HTTP/1.1\r\n`
 			+ `Host: ${Number(serverPort) === 443 ? displayHost : `${displayHost}:${serverPort}`}\r\n`
 			+ 'Content-Length: 18446744073709551615\r\n'
@@ -4455,17 +4439,17 @@ async function sstpConnect(proxy, targetHost, targetPort, TCP连接) {
 		sstpConnectView.setUint16(10, 4 + encapsulatedProtocol.byteLength);
 		sstpConnectRequest.set(encapsulatedProtocol, 12);
 
-		await withTimeout(writer.write(拼接字节数据(
+		await hew(writer.write(hot(
 			httpRequest,
 			sstpConnectRequest,
 			buildSstpDataPacket(buildPppConfigurePacket(0xc021, 1, pppIdentifier++, [
 				{ type: 1, data: maximumReceiveUnit }
 			]))
-		)), CONNECT_TIMEOUT_MS, 'SSTP HTTP handshake request timed out');
+		)), hem, 'SSTP HTTP handshake request timed out');
 
-		const statusLine = await withTimeout(readHttpLine(), CONNECT_TIMEOUT_MS, 'SSTP HTTP handshake timed out');
+		const statusLine = await hew(readHttpLine(), hem, 'SSTP HTTP handshake timed out');
 		for (; ;) {
-			const line = await withTimeout(readHttpLine(), CONNECT_TIMEOUT_MS, 'SSTP HTTP header read timed out');
+			const line = await hew(readHttpLine(), hem, 'SSTP HTTP header read timed out');
 			if (line === '') break;
 		}
 		if (!/HTTP\/\d(?:\.\d)?\s+2\d\d/i.test(statusLine)) throw new Error(`SSTP HTTP handshake failed: ${statusLine || 'invalid status'}`);
@@ -4474,8 +4458,8 @@ async function sstpConnect(proxy, targetHost, targetPort, TCP连接) {
 		const sendPapIfReady = async () => {
 			if (!localLcpAcked || !peerLcpAcked || !papRequired || papSent) return;
 			if (proxy.username === null || proxy.password === null) throw new Error('SSTP server requires PAP authentication');
-			const username = textEncoder.encode(proxy.username);
-			const password = textEncoder.encode(proxy.password);
+			const username = iou.encode(proxy.username);
+			const password = iou.encode(proxy.password);
 			if (username.byteLength > 255 || password.byteLength > 255) throw new Error('SSTP username/password is too long');
 			const papLength = 6 + username.byteLength + password.byteLength;
 			const frame = new Uint8Array(2 + papLength);
@@ -4488,19 +4472,19 @@ async function sstpConnect(proxy, targetHost, targetPort, TCP连接) {
 			frame.set(username, 7);
 			frame[7 + username.byteLength] = password.byteLength;
 			frame.set(password, 8 + username.byteLength);
-			await withTimeout(writer.write(buildSstpDataPacket(frame)), CONNECT_TIMEOUT_MS, 'SSTP PAP authentication request timed out');
+			await hew(writer.write(buildSstpDataPacket(frame)), hem, 'SSTP PAP authentication request timed out');
 			papSent = true;
 		};
 		const startIpcpIfReady = async () => {
 			if (!localLcpAcked || !peerLcpAcked || ipcpStarted || (papRequired && !papDone)) return;
-			await withTimeout(writer.write(buildSstpDataPacket(buildPppConfigurePacket(0x8021, 1, pppIdentifier++, [
+			await hew(writer.write(buildSstpDataPacket(buildPppConfigurePacket(0x8021, 1, pppIdentifier++, [
 				{ type: 3, data: new Uint8Array(4) }
-			]))), CONNECT_TIMEOUT_MS, 'SSTP IPCP request timed out');
+			]))), hem, 'SSTP IPCP request timed out');
 			ipcpStarted = true;
 		};
 
 		for (let round = 0; round < 50 && !ipcpFinished; round++) {
-			const packet = await readPacket(CONNECT_TIMEOUT_MS);
+			const packet = await readPacket(hem);
 			if (packet.isControl) continue;
 			const ppp = parsePPPFrame(packet.body);
 			if (!ppp) continue;
@@ -4515,7 +4499,7 @@ async function sstpConnect(proxy, targetHost, targetPort, TCP连接) {
 					}
 					const ack = new Uint8Array(ppp.rawPacket);
 					ack[2] = 2;
-					await withTimeout(writer.write(buildSstpDataPacket(ack)), CONNECT_TIMEOUT_MS, 'SSTP LCP Configure-Ack timed out');
+					await hew(writer.write(buildSstpDataPacket(ack)), hem, 'SSTP LCP Configure-Ack timed out');
 					peerLcpAcked = true;
 					await sendPapIfReady();
 					await startIpcpIfReady();
@@ -4539,15 +4523,15 @@ async function sstpConnect(proxy, targetHost, targetPort, TCP连接) {
 				if (ppp.code === 1) {
 					const ack = new Uint8Array(ppp.rawPacket);
 					ack[2] = 2;
-					await withTimeout(writer.write(buildSstpDataPacket(ack)), CONNECT_TIMEOUT_MS, 'SSTP IPCP Configure-Ack timed out');
+					await hew(writer.write(buildSstpDataPacket(ack)), hem, 'SSTP IPCP Configure-Ack timed out');
 					await startIpcpIfReady();
 				} else if (ppp.code === 3) {
 					const addressOption = parsePppOptions(ppp.payload).find(option => option.type === 3);
 					if (addressOption?.data?.byteLength === 4) {
 						sourceIp = [...addressOption.data].join('.');
-						await withTimeout(writer.write(buildSstpDataPacket(buildPppConfigurePacket(0x8021, 1, pppIdentifier++, [
+						await hew(writer.write(buildSstpDataPacket(buildPppConfigurePacket(0x8021, 1, pppIdentifier++, [
 							{ type: 3, data: addressOption.data }
-						]))), CONNECT_TIMEOUT_MS, 'SSTP IPCP address request timed out');
+						]))), hem, 'SSTP IPCP address request timed out');
 						ipcpStarted = true;
 					}
 				} else if (ppp.code === 2) {
@@ -4559,12 +4543,12 @@ async function sstpConnect(proxy, targetHost, targetPort, TCP连接) {
 		}
 		if (!sourceIp) throw new Error('SSTP did not assign an IPv4 address');
 
-		const target = stripIPv6Brackets(targetHost);
+		const target = hap(targetHost);
 		/** @type {string | null} */
-		let targetIp = isIPv4(target) ? target : null;
+		let targetIp = hin(target) ? target : null;
 		if (!targetIp) {
 			const records = await ado(target, 'A');
-			const recordData = records.find(item => item.type === 1 && isIPv4(item.data))?.data;
+			const recordData = records.find(item => item.type === 1 && hin(item.data))?.data;
 			targetIp = typeof recordData === 'string' ? recordData : null;
 		}
 		if (!targetIp) throw new Error(`Could not resolve ${targetHost} to an IPv4 address for SSTP`);
@@ -4583,7 +4567,7 @@ async function sstpConnect(proxy, targetHost, targetPort, TCP连接) {
 		tcpPseudoHeader.set(destinationAddress, 4);
 		tcpPseudoHeader[9] = 6;
 		const buildTcpFrame = (flags, payload = SSTP_EMPTY_BYTES) => {
-			const bytes = 数据转Uint8Array(payload);
+			const bytes = hog(payload);
 			const payloadLength = bytes.byteLength;
 			const tcpLength = 20 + payloadLength;
 			const ipLength = 20 + tcpLength;
@@ -4622,18 +4606,18 @@ async function sstpConnect(proxy, targetHost, targetPort, TCP连接) {
 			};
 		};
 
-		await withTimeout(writer.write(buildTcpFrame(0x02)), CONNECT_TIMEOUT_MS, 'SSTP TCP SYN write timed out');
+		await hew(writer.write(buildTcpFrame(0x02)), hem, 'SSTP TCP SYN write timed out');
 		sequenceNumber = (sequenceNumber + 1) >>> 0;
 		let tcpReady = false;
 		for (let attempt = 0; attempt < 30; attempt++) {
-			const packet = await readPacket(CONNECT_TIMEOUT_MS);
+			const packet = await readPacket(hem);
 			if (packet.isControl) continue;
 			const ppp = parsePPPFrame(packet.body);
 			if (!ppp || ppp.protocol !== 0x0021) continue;
 			const tcp = matchIncomingIpPacket(ppp.ipPacket);
 			if (!tcp || (tcp.flags & 0x12) !== 0x12) continue;
 			acknowledgementNumber = (tcp.sequence + 1) >>> 0;
-			await withTimeout(writer.write(buildTcpFrame(0x10)), CONNECT_TIMEOUT_MS, 'SSTP TCP ACK write timed out');
+			await hew(writer.write(buildTcpFrame(0x10)), hem, 'SSTP TCP ACK write timed out');
 			tcpReady = true;
 			break;
 		}
@@ -4656,7 +4640,7 @@ async function sstpConnect(proxy, targetHost, targetPort, TCP连接) {
 				const flush = () => {
 					if (!pendingLength) return;
 					if (!streamController) throw new Error('SSTP readable stream is not ready');
-					streamController.enqueue(pendingChunks.length === 1 ? pendingChunks[0] : 拼接字节数据(...pendingChunks));
+					streamController.enqueue(pendingChunks.length === 1 ? pendingChunks[0] : hot(...pendingChunks));
 					pendingChunks = [];
 					pendingLength = 0;
 					writer.write(buildTcpFrame(0x10)).catch(() => { });
@@ -4705,7 +4689,7 @@ async function sstpConnect(proxy, targetHost, targetPort, TCP连接) {
 
 		const writable = new WritableStream({
 			async write(chunk) {
-				const bytes = 数据转Uint8Array(chunk);
+				const bytes = hog(chunk);
 				if (!bytes.byteLength) return;
 				if (bytes.byteLength <= SSTP_TCP_MSS) {
 					await writer.write(buildTcpFrame(0x18, bytes));
@@ -4718,7 +4702,7 @@ async function sstpConnect(proxy, targetHost, targetPort, TCP连接) {
 					frames.push(buildTcpFrame(0x18, segment));
 					sequenceNumber = (sequenceNumber + segment.byteLength) >>> 0;
 				}
-				await writer.write(拼接字节数据(...frames));
+				await writer.write(hot(...frames));
 			},
 			close() {
 				return writer.write(buildTcpFrame(0x11)).catch(() => { });
