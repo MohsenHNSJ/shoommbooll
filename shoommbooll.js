@@ -483,7 +483,7 @@ export default {
 						if (订阅类型 === 'mixed' && (!ua.includes('mozilla') || url.searchParams.has('b64') || url.searchParams.has('base64'))) 订阅内容 = btoa(订阅内容);
 
 						if (订阅类型 === 'singbox') {
-							订阅内容 = await Singbox订阅配置文件热补丁(订阅内容, fug);
+							订阅内容 = await ga(订阅内容, fug);
 							responseHeaders["content-type"] = 'application/json; charset=utf-8';
 						} else if (订阅类型 === 'clash') {
 							订阅内容 = Clash订阅配置文件热补丁(订阅内容, fug);
@@ -5021,283 +5021,274 @@ function Clash订阅配置文件热补丁(Clash_原始订阅内容, config_JSON 
 	return processedLines.join('\n');
 }
 
-async function Singbox订阅配置文件热补丁(SingBox_原始订阅内容, config_JSON = {}) {
-	const uuid = config_JSON?.UUID || null;
-	const fingerprint = config_JSON?.Fingerprint || "chrome";
-	const ECH启用 = Boolean(config_JSON?.ECH);
-	const ECH_SNI = config_JSON?.ECHConfig?.SNI || "cloudflare-ech.com";
-	const sb_json_text = SingBox_原始订阅内容.replace('1.1.1.1', '8.8.8.8').replace('1.0.0.1', '8.8.4.4');
+async function ga(gb, gc = {}) {
+	const gd = gc?.UUID || null;
+	const ge = gc?.Fingerprint || "chrome";
+	const gi = Boolean(gc?.ECH);
+	const gm = gc?.ECHConfig?.SNI || "cloudflare-ech.com";
+	const go = gb.replace('1.1.1.1', '8.8.8.8').replace('1.0.0.1', '8.8.4.4');
 	try {
-		const config = JSON.parse(sb_json_text);
-		const 数组化 = value => value === undefined || value === null ? [] : (Array.isArray(value) ? value : [value]);
-		const 确保Route = () => config.route = config.route && typeof config.route === 'object' ? config.route : {};
-		const 获取DNS规则服务器 = rule => rule && typeof rule === 'object' && !Array.isArray(rule) && typeof rule.server === 'string' ? rule.server : null;
-		const 添加规则集 = (type, code) => {
-			if (!code || typeof code !== 'string') return null;
-			const route = 确保Route(), tag = `${type}-${code}`, ruleSet = Array.isArray(route.rule_set) ? route.rule_set : 数组化(route.rule_set);
-			if (!ruleSet.some(item => item?.tag === tag)) {
-				const legacyOptions = type === 'geoip' ? route.geoip : route.geosite;
-				ruleSet.push({ tag, type: 'remote', format: 'binary', url: `https://raw.githubusercontent.com/SagerNet/sing-${type}/rule-set/${tag}.srs`, ...(legacyOptions?.download_detour ? { download_detour: legacyOptions.download_detour } : {}) });
-				config.experimental = config.experimental && typeof config.experimental === 'object' ? config.experimental : {};
-				config.experimental.cache_file = config.experimental.cache_file && typeof config.experimental.cache_file === 'object' ? config.experimental.cache_file : {};
-				config.experimental.cache_file.enabled ??= true;
+		const gp = JSON.parse(go);
+		const gu = gy => gy === undefined || gy === null ? [] : (Array.isArray(gy) ? gy : [gy]);
+		const gab = () => gp.route = gp.route && typeof gp.route === 'object' ? gp.route : {};
+		const gad = gag => gag && typeof gag === 'object' && !Array.isArray(gag) && typeof gag.server === 'string' ? gag.server : null;
+		const gal = (gam, gao) => {
+			if (!gao || typeof gao !== 'string') return null;
+			const gap = gab(), tag = `${gam}-${gao}`, gar = Array.isArray(gap.rule_set) ? gap.rule_set : gu(gap.rule_set);
+			if (!gar.some(gas => gas?.tag === tag)) {
+				const gat = gam === 'geoip' ? gap.geoip : gap.geosite;
+				gar.push({ tag, type: 'remote', format: 'binary', url: `https://raw.githubusercontent.com/SagerNet/sing-${gam}/rule-set/${tag}.srs`, ...(gat?.download_detour ? { download_detour: gat.download_detour } : {}) });
+				gp.experimental = gp.experimental && typeof gp.experimental === 'object' ? gp.experimental : {};
+				gp.experimental.cache_file = gp.experimental.cache_file && typeof gp.experimental.cache_file === 'object' ? gp.experimental.cache_file : {};
+				gp.experimental.cache_file.enabled ??= true;
 			}
-			route.rule_set = ruleSet;
+			gap.rule_set = gar;
 			return tag;
 		};
 
-		const 迁移规则集字段 = rule => {
-			if (!rule || typeof rule !== 'object' || Array.isArray(rule)) return rule;
-			if (rule.type === 'logical' && Array.isArray(rule.rules)) {
-				rule.rules = rule.rules.map(迁移规则集字段);
-				return rule;
+		const gay = gca => {
+			if (!gca || typeof gca !== 'object' || Array.isArray(gca)) return gca;
+			if (gca.type === 'logical' && Array.isArray(gca.rules)) {
+				gca.rules = gca.rules.map(gay);
+				return gca;
 			}
-			const tags = [];
-			for (const geoip of 数组化(rule.geoip)) {
-				if (typeof geoip !== 'string') continue;
-				if (geoip.toLowerCase() === 'private') rule.ip_is_private = true;
-				else tags.push(添加规则集('geoip', geoip));
+			const gdp = [];
+			for (const geb of gu(gca.geoip)) {
+				if (typeof geb !== 'string') continue;
+				if (geb.toLowerCase() === 'private') gca.ip_is_private = true;
+				else gdp.push(gal('geoip', geb));
 			}
-			for (const sourceGeoip of 数组化(rule.source_geoip)) {
-				if (typeof sourceGeoip !== 'string') continue;
-				tags.push(添加规则集('geoip', sourceGeoip));
-				rule.rule_set_ip_cidr_match_source = true;
+			for (const gee of gu(gca.source_geoip)) {
+				if (typeof gee !== 'string') continue;
+				gdp.push(gal('geoip', gee));
+				gca.rule_set_ip_cidr_match_source = true;
 			}
-			for (const geosite of 数组化(rule.geosite)) if (typeof geosite === 'string') tags.push(添加规则集('geosite', geosite));
-			if (tags.length) rule.rule_set = [...new Set([...数组化(rule.rule_set), ...tags].filter(Boolean))];
-			delete rule.geoip;
-			delete rule.source_geoip;
-			delete rule.geosite;
-			return rule;
+			for (const gel of gu(gca.geosite)) if (typeof gel === 'string') gdp.push(gal('geosite', gel));
+			if (gdp.length) gca.rule_set = [...new Set([...gu(gca.rule_set), ...gdp].filter(Boolean))];
+			delete gca.geoip;
+			delete gca.source_geoip;
+			delete gca.geosite;
+			return gca;
 		};
 
-		const 迁移DNS规则 = (rule, rcodeServerMap) => {
-			rule = 迁移规则集字段(rule);
-			if (!rule || typeof rule !== 'object' || Array.isArray(rule)) return rule;
-			if (rule.type === 'logical' && Array.isArray(rule.rules)) {
-				rule.rules = rule.rules.map(childRule => 迁移DNS规则(childRule, rcodeServerMap));
-				return rule;
+		const gem = (gen, ghb) => {
+			gen = gay(gen);
+			if (!gen || typeof gen !== 'object' || Array.isArray(gen)) return gen;
+			if (gen.type === 'logical' && Array.isArray(gen.rules)) {
+				gen.rules = gen.rules.map(ghq => gem(ghq, ghb));
+				return gen;
 			}
-			const serverTag = 获取DNS规则服务器(rule);
-			if (serverTag && rcodeServerMap.has(serverTag)) {
-				for (const key of ['server', 'strategy', 'disable_cache', 'rewrite_ttl', 'client_subnet', 'timeout']) delete rule[key];
-				rule.action = 'predefined';
-				rule.rcode = rcodeServerMap.get(serverTag);
-			} else if (serverTag && !rule.action) rule.action = 'route';
-			return rule;
+			const ghz = gad(gen);
+			if (ghz && ghb.has(ghz)) {
+				for (const gia of ['server', 'strategy', 'disable_cache', 'rewrite_ttl', 'client_subnet', 'timeout']) delete gen[gia];
+				gen.action = 'predefined';
+				gen.rcode = ghb.get(ghz);
+			} else if (ghz && !gen.action) gen.action = 'route';
+			return gen;
 		};
 
-		if (Array.isArray(config.inbounds)) {
-			for (const inbound of config.inbounds) {
-				if (!inbound || typeof inbound !== 'object' || inbound.type !== 'tun') continue;
-				for (const migration of [
+		if (Array.isArray(gp.inbounds)) {
+			for (const gib of gp.inbounds) {
+				if (!gib || typeof gib !== 'object' || gib.type !== 'tun') continue;
+				for (const gig of [
 					{ targetKey: 'address', sourceKeys: ['inet4_address', 'inet6_address'] },
 					{ targetKey: 'route_address', sourceKeys: ['inet4_route_address', 'inet6_route_address'] },
 					{ targetKey: 'route_exclude_address', sourceKeys: ['inet4_route_exclude_address', 'inet6_route_exclude_address'] }
 				]) {
-					const values = 数组化(inbound[migration.targetKey]);
-					for (const sourceKey of migration.sourceKeys) values.push(...数组化(inbound[sourceKey]));
-					if (values.length) inbound[migration.targetKey] = [...new Set(values)];
-					for (const sourceKey of migration.sourceKeys) delete inbound[sourceKey];
+					const gin = gu(gib[gig.targetKey]);
+					for (const gip of gig.sourceKeys) gin.push(...gu(gib[gip]));
+					if (gin.length) gib[gig.targetKey] = [...new Set(gin)];
+					for (const sourceKey of gig.sourceKeys) delete gib[sourceKey];
 				}
-				if (inbound.tag) {
-					const addedRules = [];
-					if (inbound.domain_strategy) addedRules.push({ inbound: inbound.tag, action: 'resolve', strategy: inbound.domain_strategy });
-					if (inbound.sniff) {
-						const sniffRule = { inbound: inbound.tag, action: 'sniff' };
-						if (inbound.sniff_timeout) sniffRule.timeout = inbound.sniff_timeout;
-						addedRules.push(sniffRule);
+				if (gib.tag) {
+					const gmt = [];
+					if (gib.domain_strategy) gmt.push({ inbound: gib.tag, action: 'resolve', strategy: gib.domain_strategy });
+					if (gib.sniff) {
+						const sniffRule = { inbound: gib.tag, action: 'sniff' };
+						if (gib.sniff_timeout) sniffRule.timeout = gib.sniff_timeout;
+						gmt.push(sniffRule);
 					}
-					if (addedRules.length) {
-						const route = 确保Route();
-						route.rules = [...addedRules, ...数组化(route.rules)];
+					if (gmt.length) {
+						const gnp = gab();
+						gnp.rules = [...gmt, ...gu(gnp.rules)];
 					}
 				}
-				delete inbound.sniff;
-				delete inbound.sniff_timeout;
-				delete inbound.domain_strategy;
+				delete gib.sniff;
+				delete gib.sniff_timeout;
+				delete gib.domain_strategy;
 			}
 		}
 
-		if (config?.route && typeof config.route === 'object' && Array.isArray(config.route.rules)) {
-			const 修补路由规则 = rule => {
-				rule = 迁移规则集字段(rule);
-				if (rule?.type === 'logical' && Array.isArray(rule.rules)) rule.rules = rule.rules.map(修补路由规则);
-				else if (rule && typeof rule === 'object' && !Array.isArray(rule) && rule.outbound && !rule.action) rule.action = 'route';
-				return rule;
+		if (gp?.route && typeof gp.route === 'object' && Array.isArray(gp.route.rules)) {
+			const gur = gut => {
+				gut = gay(gut);
+				if (gut?.type === 'logical' && Array.isArray(gut.rules)) gut.rules = gut.rules.map(gur);
+				else if (gut && typeof gut === 'object' && !Array.isArray(gut) && gut.outbound && !gut.action) gut.action = 'route';
+				return gut;
 			};
-			config.route.rules = config.route.rules.map(修补路由规则);
+			gp.route.rules = gp.route.rules.map(gur);
 		}
 
-		const dns = config?.dns;
-		if (dns && typeof dns === 'object') {
-			const legacyFakeIP = dns.fakeip && typeof dns.fakeip === 'object' ? dns.fakeip : null;
-			const rcodeServerMap = new Map();
-			const DNS地址协议类型 = { 'tcp:': 'tcp', 'udp:': 'udp', 'tls:': 'tls', 'quic:': 'quic', 'https:': 'https', 'h3:': 'h3' };
-			const RCode映射 = { success: 'NOERROR', format_error: 'FORMERR', server_failure: 'SERVFAIL', name_error: 'NXDOMAIN', not_implemented: 'NOTIMP', refused: 'REFUSED' };
-			let hasFakeIPServer = false;
+		const guy = gp?.dns;
+		if (guy && typeof guy === 'object') {
+			const gym = guy.fakeip && typeof guy.fakeip === 'object' ? guy.fakeip : null;
+			const gyp = new Map();
+			const ha = { 'tcp:': 'tcp', 'udp:': 'udp', 'tls:': 'tls', 'quic:': 'quic', 'https:': 'https', 'h3:': 'h3' };
+			const hb = { success: 'NOERROR', format_error: 'FORMERR', server_failure: 'SERVFAIL', name_error: 'NXDOMAIN', not_implemented: 'NOTIMP', refused: 'REFUSED' };
+			let he = false;
 
-			if (Array.isArray(dns.servers)) {
-				const migratedServers = [];
-				for (const originalServer of dns.servers) {
-					if (!originalServer || typeof originalServer !== 'object' || Array.isArray(originalServer)) {
-						migratedServers.push(originalServer);
+			if (Array.isArray(guy.servers)) {
+				const hf = [];
+				for (const hg of guy.servers) {
+					if (!hg || typeof hg !== 'object' || Array.isArray(hg)) {
+						hf.push(hg);
 						continue;
 					}
 
-					const server = { ...originalServer };
-					let parsedAddress = null, parsedRCode = '', rawAddress = typeof server.address === 'string' ? server.address.trim() : '';
-					if (rawAddress) {
-						const lowerAddress = rawAddress.toLowerCase();
-						if (lowerAddress === 'fakeip') parsedAddress = { type: 'fakeip' };
-						else if (lowerAddress === 'local') parsedAddress = { type: 'local' };
-						else if (lowerAddress.startsWith('rcode://')) {
-							parsedAddress = { type: 'rcode' };
-							parsedRCode = rawAddress.slice('rcode://'.length).toLowerCase();
+					const hi = { ...hg };
+					let hl = null, hn = '', hm = typeof hi.address === 'string' ? hi.address.trim() : '';
+					if (hm) {
+						const ho = hm.toLowerCase();
+						if (ho === 'fakeip') hl = { type: 'fakeip' };
+						else if (ho === 'local') hl = { type: 'local' };
+						else if (ho.startsWith('rcode://')) {
+							hl = { type: 'rcode' };
+							hn = hm.slice('rcode://'.length).toLowerCase();
 						}
-						else if (lowerAddress.startsWith('dhcp://')) {
-							const dhcpInterface = rawAddress.slice('dhcp://'.length);
-							parsedAddress = dhcpInterface && dhcpInterface.toLowerCase() !== 'auto' ? { type: 'dhcp', interface: dhcpInterface } : { type: 'dhcp' };
+						else if (ho.startsWith('dhcp://')) {
+							const hp = hm.slice('dhcp://'.length);
+							hl = hp && hp.toLowerCase() !== 'auto' ? { type: 'dhcp', interface: hp } : { type: 'dhcp' };
 						} else {
 							try {
-								const addressURL = new URL(rawAddress);
-								const type = DNS地址协议类型[addressURL.protocol.toLowerCase()];
-								if (type) {
-									const parsedServer = addressURL.hostname?.startsWith('[') && addressURL.hostname.endsWith(']') ? addressURL.hostname.slice(1, -1) : addressURL.hostname;
-									parsedAddress = {
-										type,
-										server: parsedServer || addressURL.host || rawAddress,
-										...(addressURL.port ? { server_port: Number(addressURL.port) } : {}),
-										...((type === 'https' || type === 'h3') && addressURL.pathname && addressURL.pathname !== '/dns-query' ? { path: addressURL.pathname } : {})
+								const hq = new URL(hm);
+								const hr = ha[hq.protocol.toLowerCase()];
+								if (hr) {
+									const hs = hq.hostname?.startsWith('[') && hq.hostname.endsWith(']') ? hq.hostname.slice(1, -1) : hq.hostname;
+									hl = {
+										type: hr,
+										server: hs || hq.host || hm,
+										...(hq.port ? { server_port: Number(hq.port) } : {}),
+										...((hr === 'https' || hr === 'h3') && hq.pathname && hq.pathname !== '/dns-query' ? { path: hq.pathname } : {})
 									};
 								}
 							} catch (_) { }
-							if (!parsedAddress) parsedAddress = { type: 'udp', server: rawAddress };
+							if (!hl) hl = { type: 'udp', server: hm };
 						}
 					}
 
-					if (parsedAddress?.type === 'rcode') {
-						const rcode = RCode映射[parsedRCode] || 'NOERROR';
-						if (typeof server.tag === 'string' && server.tag) {
-							rcodeServerMap.set(server.tag, rcode);
-							rcodeServerMap.set(server.tag.startsWith('dns_') ? server.tag.slice(4) : `dns_${server.tag}`, rcode);
+					if (hl?.type === 'rcode') {
+						const hz = hb[hn] || 'NOERROR';
+						if (typeof hi.tag === 'string' && hi.tag) {
+							gyp.set(hi.tag, hz);
+							gyp.set(hi.tag.startsWith('dns_') ? hi.tag.slice(4) : `dns_${hi.tag}`, hz);
 						}
 						continue;
 					}
 
-					if (parsedAddress) {
-						delete server.address;
-						Object.assign(server, parsedAddress);
+					if (hl) {
+						delete hi.address;
+						Object.assign(hi, hl);
 					}
-					if (server.address_resolver !== undefined && server.domain_resolver === undefined) server.domain_resolver = server.address_resolver;
-					if (server.address_strategy !== undefined && server.domain_strategy === undefined) server.domain_strategy = server.address_strategy;
-					delete server.address_resolver;
-					delete server.address_strategy;
-					if (server.detour === 'DIRECT') delete server.detour;
+					if (hi.address_resolver !== undefined && hi.domain_resolver === undefined) hi.domain_resolver = hi.address_resolver;
+					if (hi.address_strategy !== undefined && hi.domain_strategy === undefined) hi.domain_strategy = hi.address_strategy;
+					delete hi.address_resolver;
+					delete hi.address_strategy;
+					if (hi.detour === 'DIRECT') delete hi.detour;
 
-					if (server.type === 'fakeip') {
-						hasFakeIPServer = true;
-						if (legacyFakeIP) {
-							for (const key of ['inet4_range', 'inet6_range']) {
-								if (legacyFakeIP[key] !== undefined && server[key] === undefined) server[key] = legacyFakeIP[key];
+					if (hi.type === 'fakeip') {
+						he = true;
+						if (gym) {
+							for (const hag of ['inet4_range', 'inet6_range']) {
+								if (gym[hag] !== undefined && hi[hag] === undefined) hi[hag] = gym[hag];
 							}
 						}
 					}
-					migratedServers.push(server);
+					hf.push(hi);
 				}
-				dns.servers = migratedServers;
+				guy.servers = hf;
 			}
 
-			if (legacyFakeIP && !hasFakeIPServer && legacyFakeIP.enabled !== false) {
-				const fakeIPServer = { type: 'fakeip', tag: 'fakeip' };
-				for (const rule of Array.isArray(dns.rules) ? dns.rules : []) {
-					const serverTag = 获取DNS规则服务器(rule);
-					if (serverTag && serverTag.toLowerCase().includes('fakeip')) {
-						fakeIPServer.tag = serverTag;
+			if (gym && !he && gym.enabled !== false) {
+				const haj = { type: 'fakeip', tag: 'fakeip' };
+				for (const ham of Array.isArray(guy.rules) ? guy.rules : []) {
+					const han = gad(ham);
+					if (han && han.toLowerCase().includes('fakeip')) {
+						haj.tag = han;
 						break;
 					}
 				}
-				for (const key of ['inet4_range', 'inet6_range']) {
-					if (legacyFakeIP[key] !== undefined) fakeIPServer[key] = legacyFakeIP[key];
+				for (const hao of ['inet4_range', 'inet6_range']) {
+					if (gym[hao] !== undefined) haj[hao] = gym[hao];
 				}
-				if (Array.isArray(dns.servers)) dns.servers.push(fakeIPServer);
-				else dns.servers = [fakeIPServer];
+				if (Array.isArray(guy.servers)) guy.servers.push(haj);
+				else guy.servers = [haj];
 			}
 
-			if (Array.isArray(dns.rules)) {
-				const migratedRules = [];
-				for (const rule of dns.rules) {
-					const serverTag = 获取DNS规则服务器(rule);
-					const outbound = 数组化(rule?.outbound);
-					const DNS路由选项字段 = new Set(['outbound', 'server', 'action', 'strategy', 'disable_cache', 'rewrite_ttl', 'client_subnet', 'timeout']);
-					const isOutboundAnyDNSRule = rule && typeof rule === 'object' && !Array.isArray(rule) && rule.type !== 'logical'
-						&& serverTag && outbound.includes('any') && Object.keys(rule).every(key => DNS路由选项字段.has(key));
-					if (isOutboundAnyDNSRule) {
-						const route = 确保Route();
-						if (route.default_domain_resolver === undefined) {
-							const resolver = { server: serverTag };
-							for (const key of ['strategy', 'disable_cache', 'rewrite_ttl', 'client_subnet', 'timeout']) {
-								if (rule[key] !== undefined) resolver[key] = rule[key];
+			if (Array.isArray(guy.rules)) {
+				const gop = [];
+				for (const goy of guy.rules) {
+					const gpa = gad(goy);
+					const gpo = gu(goy?.outbound);
+					const gps = new Set(['outbound', 'server', 'action', 'strategy', 'disable_cache', 'rewrite_ttl', 'client_subnet', 'timeout']);
+					const gsa = goy && typeof goy === 'object' && !Array.isArray(goy) && goy.type !== 'logical'
+						&& gpa && gpo.includes('any') && Object.keys(goy).every(gsr => gps.has(gsr));
+					if (gsa) {
+						const gui = gab();
+						if (gui.default_domain_resolver === undefined) {
+							const gum = { server: gpa };
+							for (const gun of ['strategy', 'disable_cache', 'rewrite_ttl', 'client_subnet', 'timeout']) {
+								if (goy[gun] !== undefined) gum[gun] = goy[gun];
 							}
-							route.default_domain_resolver = Object.keys(resolver).length === 1 ? resolver.server : resolver;
+							gui.default_domain_resolver = Object.keys(gum).length === 1 ? gum.server : gum;
 						}
 						continue;
 					}
-					migratedRules.push(迁移DNS规则(rule, rcodeServerMap));
+					gop.push(gem(goy, gyp));
 				}
-				dns.rules = migratedRules;
+				guy.rules = gop;
 			}
 
-			delete dns.fakeip;
-			delete dns.independent_cache;
+			delete guy.fakeip;
+			delete guy.independent_cache;
 		}
 
-		if (config?.route && typeof config.route === 'object') {
-			delete config.route.geoip;
-			delete config.route.geosite;
+		if (gp?.route && typeof gp.route === 'object') {
+			delete gp.route.geoip;
+			delete gp.route.geosite;
 		}
-		if (config?.ntp?.detour === 'DIRECT') delete config.ntp.detour;
+		if (gp?.ntp?.detour === 'DIRECT') delete gp.ntp.detour;
 
-		if (Array.isArray(config.outbounds)) {
-			const outboundTags = new Set(config.outbounds.map(outbound => outbound?.tag).filter(Boolean));
-			const 引用REJECT = value => value === 'REJECT' || (value && typeof value === 'object' && (Array.isArray(value) ? value.some(引用REJECT) : Object.values(value).some(引用REJECT)));
-			if (!outboundTags.has('REJECT') && 引用REJECT({ outbounds: config.outbounds, route: config.route })) config.outbounds.push({ type: 'block', tag: 'REJECT' });
+		if (Array.isArray(gp.outbounds)) {
+			const goa = new Set(gp.outbounds.map(gob => gob?.tag).filter(Boolean));
+			const god = goo => goo === 'REJECT' || (goo && typeof goo === 'object' && (Array.isArray(goo) ? goo.some(god) : Object.values(goo).some(god)));
+			if (!goa.has('REJECT') && god({ outbounds: gp.outbounds, route: gp.route })) gp.outbounds.push({ type: 'block', tag: 'REJECT' });
 		}
 
-		// --- UUID 匹配节点的 TLS 热补丁 (utls & ech) ---
-		if (uuid) {
-			config.outbounds?.forEach(outbound => {
-				// 仅处理包含 uuid 或 password 且匹配的节点
-				if ((outbound.uuid && outbound.uuid === uuid) || (outbound.password && outbound.password === uuid)) {
-					// 确保 tls 对象存在
-					if (!outbound.tls) {
-						outbound.tls = { enabled: true };
+		if (gd) {
+			gp.outbounds?.forEach(gnu => {
+				if ((gnu.uuid && gnu.uuid === gd) || (gnu.password && gnu.password === gd)) {
+					if (!gnu.tls) {
+						gnu.tls = { enabled: true };
 					}
-
-					// 添加/更新 utls 配置
-					if (fingerprint) {
-						outbound.tls.utls = {
+					if (ge) {
+						gnu.tls.utls = {
 							enabled: true,
-							fingerprint: fingerprint
+							fingerprint: ge
 						};
 					}
-
-					// 如果提供了 ech_config，添加/更新 ech 配置
-					if (ECH启用) {
-						outbound.tls.ech = {
+					if (gi) {
+						gnu.tls.ech = {
 							enabled: true,
-							query_server_name: ECH_SNI,// 等待 1.13.0+ 版本上线
-							//config: `-----BEGIN ECH CONFIGS-----\n${ech_config}\n-----END ECH CONFIGS-----`
+							query_server_name: gm,
 						};
 					}
 				}
 			});
 		}
-
-		return JSON.stringify(config, null, 2);
+		return JSON.stringify(gp, null, 2);
 	} catch (e) {
-		console.error("Singbox热补丁执行失败:", e);
-		return JSON.stringify(JSON.parse(sb_json_text), null, 2);
+		console.error("Error:", e);
+		return JSON.stringify(JSON.parse(go), null, 2);
 	}
 }
 function fuck(fuel, fugo, fuji) {
