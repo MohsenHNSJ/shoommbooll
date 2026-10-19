@@ -1,20 +1,17 @@
-﻿const Version = '2026-10-08 22:23:27';
-let config_JSON, 缓存SOCKS5白名单 = null, 调试日志打印 = false;
-let SOCKS5白名单 = ['*tapecontent.net', '*cloudatacdn.com', '*loadshare.org', '*cdn-centaurus.com', 'scholar.google.com'];
-const Pages静态页面 = 'https://edt-pages.github.io', cid = Number(String(Version).replace(/\D+/g, ''));
-///////////////////////////////////////////////////////全局常量和工具函数///////////////////////////////////////////////
-const WS早期数据最大字节 = 8 * 1024, WS早期数据最大头长度 = Math.ceil(WS早期数据最大字节 * 4 / 3) + 4;
-const 上行合包目标字节 = 20 * 1024, 上行队列最大字节 = 16 * 1024 * 1024, 上行队列最大条目 = 4096;
-const 下行Grain包字节 = 32 * 1024, 下行Grain尾部阈值 = 512, 下行Grain低水位字节 = Math.max(4096, 下行Grain尾部阈值 * 12), 下行Grain最大等待轮次 = 4;
-let TCP并发拨号数 = 2, 反代并发拨号数 = 1, 预加载竞速拨号 = false;
-///////////////////////////////////////////////////////查杀特征码///////////////////////////////////////////////
-const 特征码字典 = [
+﻿const Version = '1';
+let fug, ful = null, fun = false;
+let fur = ['*tapecontent.net', '*cloudatacdn.com', '*loadshare.org', '*cdn-centaurus.com', 'scholar.google.com'];
+const fws = 'https://edt-pages.github.io', cid = Number(String(Version).replace(/\D+/g, ''));
+const face = 8 * 1024, fact = Math.ceil(face * 4 / 3) + 4;
+const fade = 20 * 1024, fado = 16 * 1024 * 1024, fahd = 4096;
+const fail = 32 * 1024, fain = 512, fair = Math.max(4096, fain * 12), fake = 4;
+let fall = 2, fame = 1, fang = false;
+const fas = [
 	(Proxy.name + "IP").toUpperCase(),
 	(String.fromCharCode(67, 109) + URL.name[2] + 'i' + URL.name[0]).toLowerCase(),
 	String(2407 * 300 - 10).split('').reverse().join('')
 ];
-const cia = 'v2rayN/edge' + 'tunnel (https://github.com/' + 特征码字典[1] + '/edge' + 'tunnel)';
-///////////////////////////////////////////////////////主程序入口///////////////////////////////////////////////
+const cia = 'v2rayN/edge' + 'tunnel (https://github.com/' + fas[1] + '/edge' + 'tunnel)';
 export default {
 	async fetch(request, env, ctx) {
 		let 请求URL文本 = request.url.replace(/%5[Cc]/g, '').replace(/\\/g, '');
@@ -29,19 +26,19 @@ export default {
 		const upgradeHeader = (request.headers.get('Upgrade') || '').toLowerCase(), contentType = (request.headers.get('content-type') || '').toLowerCase();
 		const 管理员密码 = env.ADMIN || env.admin || env.PASSWORD || env.password || env.pswd || env.TOKEN || env.KEY || env.UUID || env.uuid;
 		const 加密秘钥 = env.KEY || '勿动此默认密钥，有需求请自行通过添加变量KEY进行修改';
-		const userIDMD5 = await MD5MD5(管理员密码 + 加密秘钥);
+		const userIDMD5 = await flay(管理员密码 + 加密秘钥);
 		const uuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/;
 		const envUUID = env.UUID || env.uuid;
 		const userID = (envUUID && uuidRegex.test(envUUID)) ? envUUID.toLowerCase() : [userIDMD5.slice(0, 8), userIDMD5.slice(8, 12), '4' + userIDMD5.slice(13, 16), '8' + userIDMD5.slice(17, 20), userIDMD5.slice(20)].join('-');
 		const hosts = env.HOST ? (await ala(env.HOST)).map(h => h.toLowerCase().replace(/^https?:\/\//, '').split('/')[0].split(':')[0]) : [url.hostname];
 		const host = hosts[0];
 		const 访问路径 = url.pathname.slice(1).toLowerCase();
-		调试日志打印 = ['1', 'true'].includes(env.DEBUG) || 调试日志打印;
-		预加载竞速拨号 = ['1', 'true'].includes(env.PRELOAD_RACE_DIAL) || 预加载竞速拨号;
-		反代并发拨号数 = Math.max(1, Number(env.PROXY_CONCURRENT_DIAL) || 反代并发拨号数);
-		TCP并发拨号数 = Math.max(1, Number(env.TCP_CONCURRENT_DIAL) || TCP并发拨号数);
-		if (!env.TCP_CONCURRENT_DIAL && TCP并发拨号数 !== 1 && 识别运营商(request) === 'cmcc') TCP并发拨号数 = 1;
-		let 默认反代IP = (`${request.cf.colo}.${特征码字典[0]}.${特征码字典[1]}SsSs.nEt`).toLowerCase(), 默认反代兜底 = true;
+		fun = ['1', 'true'].includes(env.DEBUG) || fun;
+		fang = ['1', 'true'].includes(env.PRELOAD_RACE_DIAL) || fang;
+		fame = Math.max(1, Number(env.PROXY_CONCURRENT_DIAL) || fame);
+		fall = Math.max(1, Number(env.TCP_CONCURRENT_DIAL) || fall);
+		if (!env.TCP_CONCURRENT_DIAL && fall !== 1 && faa(request) === 'cmcc') fall = 1;
+		let 默认反代IP = (`${request.cf.colo}.${fas[0]}.${fas[1]}SsSs.nEt`).toLowerCase(), 默认反代兜底 = true;
 		if (env.PROXYIP) {
 			const proxyIPs = await ala(env.PROXYIP);
 			默认反代IP = proxyIPs[Math.floor(Math.random() * proxyIPs.length)];
@@ -49,10 +46,10 @@ export default {
 		};
 		const 访问IP = request.headers.get('CF-Connecting-IP') || request.headers.get('True-Client-IP') || request.headers.get('X-Real-IP') || request.headers.get('X-Forwarded-For') || request.headers.get('Fly-Client-IP') || request.headers.get('X-Appengine-Remote-Addr') || request.headers.get('X-Cluster-Client-IP') || '未知IP';
 		const [本机标识头, 本机标识键] = 获取本机标识(userID);
-		if (缓存SOCKS5白名单 === null) {
-			if (env.GO2SOCKS5) SOCKS5白名单 = [...new Set(SOCKS5白名单.concat(await ala(env.GO2SOCKS5)))];
-			缓存SOCKS5白名单 = SOCKS5白名单;
-		} else SOCKS5白名单 = 缓存SOCKS5白名单;
+		if (ful === null) {
+			if (env.GO2SOCKS5) fur = [...new Set(fur.concat(await ala(env.GO2SOCKS5)))];
+			ful = fur;
+		} else fur = ful;
 		if (访问路径 === 'version') {// 版本信息接口
 			const 请求UUID = (url.searchParams.get('uuid') || '').toLowerCase();
 			if (uuidRegex.test(请求UUID)) {
@@ -81,17 +78,17 @@ export default {
 			return await 处理叉HTTP请求(request, userID, 反代上下文);
 		} else {
 			if (url.protocol === 'http:') return Response.redirect(url.href.replace(`http://${url.hostname}`, `https://${url.hostname}`), 301);
-			if (!管理员密码) return fetch(Pages静态页面 + '/noADMIN').then(r => { const headers = new Headers(r.headers); headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate'); headers.set('Pragma', 'no-cache'); headers.set('Expires', '0'); return new Response(r.body, { status: 404, statusText: r.statusText, headers }) });
+			if (!管理员密码) return fetch(fws + '/noADMIN').then(r => { const headers = new Headers(r.headers); headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate'); headers.set('Pragma', 'no-cache'); headers.set('Expires', '0'); return new Response(r.body, { status: 404, statusText: r.statusText, headers }) });
 			if (env.KV && typeof env.KV.get === 'function') {
 				const 区分大小写访问路径 = url.pathname.slice(1);
 				if (区分大小写访问路径 === 加密秘钥 && 加密秘钥 !== '勿动此默认密钥，有需求请自行通过添加变量KEY进行修改') {//快速订阅
 					const params = new URLSearchParams(url.search);
-					params.set('token', await MD5MD5(host + userID));
+					params.set('token', await flay(host + userID));
 					return new Response('重定向中...', { status: 302, headers: { 'Location': `/sub?${params.toString()}` } });
 				} else if (访问路径 === 'login') {//处理登录页面和登录请求
 					const cookies = request.headers.get('Cookie') || '';
 					const authCookie = cookies.split(';').find(c => c.trim().startsWith('auth='))?.split('=')[1];
-					if (authCookie == await MD5MD5(UA + 加密秘钥 + 管理员密码)) return new Response('重定向中...', { status: 302, headers: { 'Location': '/admin' } });
+					if (authCookie == await flay(UA + 加密秘钥 + 管理员密码)) return new Response('重定向中...', { status: 302, headers: { 'Location': '/admin' } });
 					if (request.method === 'POST') {
 						const formData = await request.text();
 						const params = new URLSearchParams(formData);
@@ -99,16 +96,16 @@ export default {
 						if (输入密码 === (typeof 管理员密码 === 'string' ? 管理员密码.replace(/[\r\n]/g, '') : 管理员密码)) {
 							// 密码正确，设置cookie并返回成功标记
 							const 响应 = new Response(JSON.stringify({ success: true }), { status: 200, headers: { 'Content-Type': 'application/json;charset=utf-8' } });
-							响应.headers.set('Set-Cookie', `auth=${await MD5MD5(UA + 加密秘钥 + 管理员密码)}; Path=/; Max-Age=86400; HttpOnly; Secure; SameSite=Lax`);
+							响应.headers.set('Set-Cookie', `auth=${await flay(UA + 加密秘钥 + 管理员密码)}; Path=/; Max-Age=86400; HttpOnly; Secure; SameSite=Lax`);
 							return 响应;
 						}
 					}
-					return fetch(Pages静态页面 + '/login');
+					return fetch(fws + '/login');
 				} else if (访问路径 === 'admin' || 访问路径.startsWith('admin/')) {//验证cookie后响应管理页面
 					const cookies = request.headers.get('Cookie') || '';
 					const authCookie = cookies.split(';').find(c => c.trim().startsWith('auth='))?.split('=')[1];
 					// 没有cookie或cookie错误，跳转到/login页面
-					if (!authCookie || authCookie !== await MD5MD5(UA + 加密秘钥 + 管理员密码)) return new Response('重定向中...', { status: 302, headers: { 'Location': '/login' } });
+					if (!authCookie || authCookie !== await flay(UA + 加密秘钥 + 管理员密码)) return new Response('重定向中...', { status: 302, headers: { 'Location': '/login' } });
 					if (访问路径 === 'admin/log.json') {// 读取日志内容
 						const 读取日志内容 = await env.KV.get('log.json') || '[]';
 						return new Response(读取日志内容, { status: 200, headers: { 'Content-Type': 'application/json;charset=utf-8' } });
@@ -205,14 +202,14 @@ export default {
 						return new Response(JSON.stringify(检测代理响应, null, 2), { status: 200, headers: { 'Content-Type': 'application/json;charset=utf-8' } });
 					}
 
-					config_JSON = await 读取config_JSON(env, host, userID, UA);
+					fug = await fir(env, host, userID, UA);
 
 					if (访问路径 === 'admin/init') {// 重置配置为默认值
 						try {
-							config_JSON = await 读取config_JSON(env, host, userID, UA, true);
-							ctx.waitUntil(请求日志记录(env, request, 访问IP, 'Init_Config', config_JSON));
-							config_JSON.init = '配置已重置为默认值';
-							return new Response(JSON.stringify(config_JSON, null, 2), { status: 200, headers: { 'Content-Type': 'application/json;charset=utf-8' } });
+							fug = await fir(env, host, userID, UA, true);
+							ctx.waitUntil(fohn(env, request, 访问IP, 'Init_Config', fug));
+							fug.init = '配置已重置为默认值';
+							return new Response(JSON.stringify(fug, null, 2), { status: 200, headers: { 'Content-Type': 'application/json;charset=utf-8' } });
 						} catch (err) {
 							const errorResponse = { msg: '配置重置失败，失败原因：' + err.message, error: err.message };
 							return new Response(JSON.stringify(errorResponse, null, 2), { status: 500, headers: { 'Content-Type': 'application/json;charset=utf-8' } });
@@ -226,7 +223,7 @@ export default {
 
 								// 保存到 KV
 								await env.KV.put('config.json', JSON.stringify(newConfig, null, 2));
-								ctx.waitUntil(请求日志记录(env, request, 访问IP, 'Save_Config', config_JSON));
+								ctx.waitUntil(fohn(env, request, 访问IP, 'Save_Config', fug));
 								return new Response(JSON.stringify({ success: true, message: '配置已保存' }), { status: 200, headers: { 'Content-Type': 'application/json;charset=utf-8' } });
 							} catch (error) {
 								console.error('保存配置失败:', error);
@@ -252,7 +249,7 @@ export default {
 
 								// 保存到 KV
 								await env.KV.put('cf.json', JSON.stringify(CF_JSON, null, 2));
-								ctx.waitUntil(请求日志记录(env, request, 访问IP, 'Save_Config', config_JSON));
+								ctx.waitUntil(fohn(env, request, 访问IP, 'Save_Config', fug));
 								return new Response(JSON.stringify({ success: true, message: '配置已保存' }), { status: 200, headers: { 'Content-Type': 'application/json;charset=utf-8' } });
 							} catch (error) {
 								console.error('保存配置失败:', error);
@@ -268,7 +265,7 @@ export default {
 									if (!newConfig.BotToken || !newConfig.ChatID) return new Response(JSON.stringify({ error: '配置不完整' }), { status: 400, headers: { 'Content-Type': 'application/json;charset=utf-8' } });
 									await env.KV.put('tg.json', JSON.stringify(newConfig, null, 2));
 								}
-								ctx.waitUntil(请求日志记录(env, request, 访问IP, 'Save_Config', config_JSON));
+								ctx.waitUntil(fohn(env, request, 访问IP, 'Save_Config', fug));
 								return new Response(JSON.stringify({ success: true, message: '配置已保存' }), { status: 200, headers: { 'Content-Type': 'application/json;charset=utf-8' } });
 							} catch (error) {
 								console.error('保存配置失败:', error);
@@ -278,7 +275,7 @@ export default {
 							try {
 								const customIPs = await request.text();
 								await env.KV.put('ADD.txt', customIPs);// 保存到 KV
-								ctx.waitUntil(请求日志记录(env, request, 访问IP, 'Save_Custom_IPs', config_JSON));
+								ctx.waitUntil(fohn(env, request, 访问IP, 'Save_Custom_IPs', fug));
 								return new Response(JSON.stringify({ success: true, message: '自定义IP已保存' }), { status: 200, headers: { 'Content-Type': 'application/json;charset=utf-8' } });
 							} catch (error) {
 								console.error('保存自定义IP失败:', error);
@@ -286,47 +283,47 @@ export default {
 							}
 						} else return new Response(JSON.stringify({ error: '不支持的POST请求路径' }), { status: 404, headers: { 'Content-Type': 'application/json;charset=utf-8' } });
 					} else if (访问路径 === 'admin/config.json') {// 处理 admin/config.json 请求，返回JSON
-						return new Response(JSON.stringify(config_JSON, null, 2), { status: 200, headers: { 'Content-Type': 'application/json' } });
+						return new Response(JSON.stringify(fug, null, 2), { status: 200, headers: { 'Content-Type': 'application/json' } });
 					} else if (区分大小写访问路径 === 'admin/ADD.txt') {// 处理 admin/ADD.txt 请求，返回本地优选IP
 						let 本地优选IP = await env.KV.get('ADD.txt') || 'null';
-						if (本地优选IP == 'null') 本地优选IP = (await 生成随机IP(request, config_JSON.优选订阅生成.本地IP库.随机数量, config_JSON.优选订阅生成.本地IP库.指定端口))[1];
+						if (本地优选IP == 'null') 本地优选IP = (await fa(request, fug.fray.本地IP库.随机数量, fug.fray.本地IP库.指定端口))[1];
 						return new Response(本地优选IP, { status: 200, headers: { 'Content-Type': 'text/plain;charset=utf-8', 'asn': request.cf.asn } });
 					} else if (访问路径 === 'admin/cf.json') {// CF配置文件
 						return new Response(JSON.stringify(request.cf, null, 2), { status: 200, headers: { 'Content-Type': 'application/json;charset=utf-8' } });
 					}
 
-					ctx.waitUntil(请求日志记录(env, request, 访问IP, 'Admin_Login', config_JSON));
-					return fetch(Pages静态页面 + '/admin' + url.search);
+					ctx.waitUntil(fohn(env, request, 访问IP, 'Admin_Login', fug));
+					return fetch(fws + '/admin' + url.search);
 				} else if (访问路径 === 'logout' || uuidRegex.test(访问路径)) {//清除cookie并跳转到登录页面
 					const 响应 = new Response('重定向中...', { status: 302, headers: { 'Location': '/login' } });
 					响应.headers.set('Set-Cookie', 'auth=; Path=/; Max-Age=0; HttpOnly');
 					return 响应;
 				} else if (访问路径 === 'sub') {//处理订阅请求
-					const 订阅TOKEN = await MD5MD5(host + userID), 作为优选订阅生成器 = ['1', 'true'].includes(env.BEST_SUB) && url.searchParams.get('host') === 'example.com' && url.searchParams.get('uuid') === '00000000-0000-4000-8000-000000000000' && UA.toLowerCase().includes('tunnel (https://github.com/' + 特征码字典[1] + '/edge');
+					const 订阅TOKEN = await flay(host + userID), 作为优选订阅生成器 = ['1', 'true'].includes(env.BEST_SUB) && url.searchParams.get('host') === 'example.com' && url.searchParams.get('uuid') === '00000000-0000-4000-8000-000000000000' && UA.toLowerCase().includes('tunnel (https://github.com/' + fas[1] + '/edge');
 					const 请求TOKEN = url.searchParams.get('token');
 					const 用户客户端请求订阅 = 请求TOKEN === 订阅TOKEN;
 					const 当前日序号 = Math.floor(Date.now() / 86400000);
 					const 订阅转换后端TOKEN种子 = base64SecretEncode(订阅TOKEN, userID);
 					const [今日订阅转换后端专属TOKEN, 昨日订阅转换后端专属TOKEN] = await Promise.all([
-						MD5MD5(订阅转换后端TOKEN种子 + 当前日序号),
-						MD5MD5(订阅转换后端TOKEN种子 + (当前日序号 - 1)),
+						flay(订阅转换后端TOKEN种子 + 当前日序号),
+						flay(订阅转换后端TOKEN种子 + (当前日序号 - 1)),
 					]);
 					const 订阅转换后端请求订阅 = 请求TOKEN === 今日订阅转换后端专属TOKEN || 请求TOKEN === 昨日订阅转换后端专属TOKEN;
 					if (用户客户端请求订阅 || 订阅转换后端请求订阅 || 作为优选订阅生成器) {
-						config_JSON = await 读取config_JSON(env, host, userID, UA);
-						if (作为优选订阅生成器) ctx.waitUntil(请求日志记录(env, request, 访问IP, 'Get_Best_SUB', config_JSON, false));
-						else ctx.waitUntil(请求日志记录(env, request, 访问IP, 'Get_SUB', config_JSON));
+						fug = await fir(env, host, userID, UA);
+						if (作为优选订阅生成器) ctx.waitUntil(fohn(env, request, 访问IP, 'Get_Best_SUB', fug, false));
+						else ctx.waitUntil(fohn(env, request, 访问IP, 'Get_SUB', fug));
 						const ua = UA.toLowerCase();
 						const responseHeaders = {
 							"content-type": "text/plain; charset=utf-8",
-							"Profile-Update-Interval": config_JSON.优选订阅生成.SUBUpdateTime,
+							"Profile-Update-Interval": fug.fray.fuzz,
 							"Profile-web-page-url": url.protocol + '//' + url.host + '/admin',
 							"Cache-Control": "no-store",
 						};
-						if (config_JSON.CF.Usage.success) {
-							const pagesSum = config_JSON.CF.Usage.pages;
-							const workersSum = config_JSON.CF.Usage.workers;
-							const total = Number.isFinite(config_JSON.CF.Usage.max) ? (config_JSON.CF.Usage.max / 1000) * 1024 : 1024 * 100;
+						if (fug.CF.Usage.success) {
+							const pagesSum = fug.CF.Usage.pages;
+							const workersSum = fug.CF.Usage.workers;
+							const total = Number.isFinite(fug.CF.Usage.max) ? (fug.CF.Usage.max / 1000) * 1024 : 1024 * 100;
 							responseHeaders["Subscription-Userinfo"] = `upload=${pagesSum}; download=${workersSum}; total=${total}; expire=4102329600`; // 2099-12-31 到期时间
 						}
 						const isSubConverterRequest = url.searchParams.has('b64') || url.searchParams.has('base64') || request.headers.get('subconverter-request') || request.headers.get('subconverter-version') || ua.includes('subconverter') || ua.includes(('CF-Workers-SUB').toLowerCase()) || 作为优选订阅生成器;
@@ -346,18 +343,18 @@ export default {
 													? 'loon'
 													: 'mixed';
 
-						if (!ua.includes('mozilla')) responseHeaders["Content-Disposition"] = `attachment; filename*=utf-8''${encodeURIComponent(config_JSON.优选订阅生成.SUBNAME)}`;
-						const 协议类型 = ((url.searchParams.has('surge') || ua.includes('surge')) && config_JSON.协议类型 !== 'ss') ? 'tro' + 'jan' : config_JSON.协议类型;
+						if (!ua.includes('mozilla')) responseHeaders["Content-Disposition"] = `attachment; filename*=utf-8''${encodeURIComponent(fug.fray.SUBNAME)}`;
+						const 协议类型 = ((url.searchParams.has('surge') || ua.includes('surge')) && fug.协议类型 !== 'ss') ? 'tro' + 'jan' : fug.协议类型;
 						let 订阅内容 = '';
 						if (订阅类型 === 'mixed') {
-							const TLS分片参数 = config_JSON.TLS分片 == 'Shadowrocket' ? `&fragment=${encodeURIComponent('1,40-60,30-50,tlshello')}` : config_JSON.TLS分片 == 'Happ' ? `&fragment=${encodeURIComponent('3,1,tlshello')}` : '';
+							const TLS分片参数 = fug.TLS分片 == 'Shadowrocket' ? `&fragment=${encodeURIComponent('1,40-60,30-50,tlshello')}` : fug.TLS分片 == 'Happ' ? `&fragment=${encodeURIComponent('3,1,tlshello')}` : '';
 							let 完整优选IP = [], 其他节点LINK = '', 反代IP池 = [];
 
-							if (!url.searchParams.has('sub') && config_JSON.优选订阅生成.local) { // 本地生成订阅
-								const 完整优选列表 = config_JSON.优选订阅生成.本地IP库.随机IP ? (
-									await 生成随机IP(request, config_JSON.优选订阅生成.本地IP库.随机数量, config_JSON.优选订阅生成.本地IP库.指定端口)
+							if (!url.searchParams.has('sub') && fug.fray.local) { // 本地生成订阅
+								const 完整优选列表 = fug.fray.本地IP库.随机IP ? (
+									await fa(request, fug.fray.本地IP库.随机数量, fug.fray.本地IP库.指定端口)
 								)[0] : await env.KV.get('ADD.txt') ? await ala(await env.KV.get('ADD.txt')) : (
-									await 生成随机IP(request, config_JSON.优选订阅生成.本地IP库.随机数量, config_JSON.优选订阅生成.本地IP库.指定端口)
+									await fa(request, fug.fray.本地IP库.随机数量, fug.fray.本地IP库.指定端口)
 								)[0];
 								const 优选API = [], 优选IP = [], 其他节点 = [];
 								for (const 元素 of 完整优选列表) {
@@ -381,7 +378,7 @@ export default {
 											} else 其他节点.push(元素);
 										} else {
 											if (地址部分.includes('*')) {
-												优选IP.push(替换星号为随机字符(地址部分) + 备注部分);
+												优选IP.push(flat(地址部分) + 备注部分);
 											} else 优选IP.push(元素);
 										}
 									}
@@ -393,14 +390,14 @@ export default {
 								反代IP池 = 请求优选API内容[3] || [];
 								完整优选IP = [...new Set(优选IP.concat(优选API的IP))];
 							} else { // 优选订阅生成器
-								let 优选订阅生成器HOST = url.searchParams.get('sub') || config_JSON.优选订阅生成.SUB;
+								let 优选订阅生成器HOST = url.searchParams.get('sub') || fug.fray.SUB;
 								const [优选生成器IP数组, 优选生成器其他节点] = await cbc(优选订阅生成器HOST, 本机标识头);
 								完整优选IP = 完整优选IP.concat(优选生成器IP数组);
 								其他节点LINK += 优选生成器其他节点;
 							}
-							const ECHLINK参数 = config_JSON.ECH ? `&ech=${encodeURIComponent((config_JSON.ECHConfig.SNI ? config_JSON.ECHConfig.SNI + '+' : '') + config_JSON.ECHConfig.DNS)}` : '';
+							const ECHLINK参数 = fug.ECH ? `&ech=${encodeURIComponent((fug.ECHConfig.SNI ? fug.ECHConfig.SNI + '+' : '') + fug.ECHConfig.DNS)}` : '';
 							const isLoonOrSurge = ua.includes('loon') || ua.includes('surge');
-							const { type: 传输协议, 路径字段名, 域名字段名 } = 获取传输协议配置(config_JSON);
+							const { type: 传输协议, 路径字段名, 域名字段名 } = 获取传输协议配置(fug);
 							订阅内容 = 其他节点LINK + 完整优选IP.map(原始地址 => {
 								// 统一正则: 匹配 域名/IPv4/IPv6地址 + 可选端口 + 可选备注
 								// 示例:
@@ -422,45 +419,45 @@ export default {
 									return null;
 								}
 
-								let 完整节点路径 = config_JSON.完整节点路径;
+								let fund = fug.fund;
 
 								const 链式代理匹配 = 节点备注.match(/\$(socks5|http|https|turn|sstp):\/\/([^#\s]+)/i);
 								if (链式代理匹配) {
 									try {
 										const 代理协议 = 链式代理匹配[1].toLowerCase(), 代理参数 = 链式代理匹配[2];
 										const 链式代理数据 = { type: 代理协议, ...arp(代理参数, awe(代理协议)) };
-										完整节点路径 = `/video/${base64SecretEncode(JSON.stringify(链式代理数据), userID) + (config_JSON.启用0RTT ? '?ed=2560' : '')}`;
+										fund = `/video/${base64SecretEncode(JSON.stringify(链式代理数据), userID) + (fug.启用0RTT ? '?ed=2560' : '')}`;
 										节点备注 = 节点备注.replace(链式代理匹配[0], '').trim() || 节点地址;
 									} catch (error) {
 										console.warn(`[订阅内容] 链式代理解析失败，已忽略该指令: ${链式代理匹配[0]} (${error && error.message ? error.message : error})`);
 									}
 								} else if (反代IP池.length > 0) {
 									const 匹配到的反代IP = 反代IP池.find(p => p.includes(节点地址));
-									if (匹配到的反代IP) 完整节点路径 = (`${config_JSON.PATH}/proxyip=${匹配到的反代IP}`).replace(/\/\//g, '/') + (config_JSON.启用0RTT ? '?ed=2560' : '');
+									if (匹配到的反代IP) fund = (`${fug.PATH}/proxyip=${匹配到的反代IP}`).replace(/\/\//g, '/') + (fug.启用0RTT ? '?ed=2560' : '');
 								}
-								if (isLoonOrSurge) 完整节点路径 = 完整节点路径.replace(/,/g, '%2C');
+								if (isLoonOrSurge) fund = fund.replace(/,/g, '%2C');
 
 								if (协议类型 === 'ss' && !作为优选订阅生成器) {
-									if (!config_JSON.SS.TLS) {
+									if (!fug.SS.TLS) {
 										const TLS端口 = [443, 2053, 2083, 2087, 2096, 8443];
 										const NOTLS端口 = [80, 2052, 2082, 2086, 2095, 8080];
 										节点端口 = String(NOTLS端口[TLS端口.indexOf(Number(节点端口))] ?? 节点端口);
 									}
-									完整节点路径 = (完整节点路径.includes('?') ? 完整节点路径.replace('?', '?enc=' + config_JSON.SS.加密方式 + '&') : (完整节点路径 + '?enc=' + config_JSON.SS.加密方式)).replace(/([=,])/g, '\\$1');
-									if (!isSubConverterRequest) 完整节点路径 = 完整节点路径 + ';mux=0';
-									return `${协议类型}://${btoa(config_JSON.SS.加密方式 + ':00000000-0000-4000-8000-000000000000')}@${节点地址}:${节点端口}?plugin=v2${encodeURIComponent('ray-plugin;mode=websocket;host=example.com;path=' + (config_JSON.随机路径 ? 随机路径(完整节点路径) : 完整节点路径) + (config_JSON.SS.TLS ? ';tls' : '')) + ECHLINK参数 + TLS分片参数}#${encodeURIComponent(节点备注)}`;
+									fund = (fund.includes('?') ? fund.replace('?', '?enc=' + fug.SS.加密方式 + '&') : (fund + '?enc=' + fug.SS.加密方式)).replace(/([=,])/g, '\\$1');
+									if (!isSubConverterRequest) fund = fund + ';mux=0';
+									return `${协议类型}://${btoa(fug.SS.加密方式 + ':00000000-0000-4000-8000-000000000000')}@${节点地址}:${节点端口}?plugin=v2${encodeURIComponent('ray-plugin;mode=websocket;host=example.com;path=' + (fug.fume ? fizz(fund) : fund) + (fug.SS.TLS ? ';tls' : '')) + ECHLINK参数 + TLS分片参数}#${encodeURIComponent(节点备注)}`;
 								} else {
-									const 传输路径参数值 = 获取传输路径参数值(config_JSON, 完整节点路径, 作为优选订阅生成器);
-									return `${协议类型}://00000000-0000-4000-8000-000000000000@${节点地址}:${节点端口}?security=tls&type=${传输协议 + ECHLINK参数}&${域名字段名}=example.com&fp=${config_JSON.Fingerprint}&sni=example.com&${路径字段名}=${encodeURIComponent(传输路径参数值) + TLS分片参数}&encryption=none&alpn=${encodeURIComponent(config_JSON.ALPN)}#${encodeURIComponent(节点备注)}`;
+									const 传输路径参数值 = 获取传输路径参数值(fug, fund, 作为优选订阅生成器);
+									return `${协议类型}://00000000-0000-4000-8000-000000000000@${节点地址}:${节点端口}?security=tls&type=${传输协议 + ECHLINK参数}&${域名字段名}=example.com&fp=${fug.Fingerprint}&sni=example.com&${路径字段名}=${encodeURIComponent(传输路径参数值) + TLS分片参数}&encryption=none&alpn=${encodeURIComponent(fug.ALPN)}#${encodeURIComponent(节点备注)}`;
 								}
 							}).filter(item => item !== null).join('\n');
 						} else { // 订阅转换
-							const 订阅转换URL = `${config_JSON.订阅转换配置.SUBAPI}/sub?target=${订阅类型}&url=${encodeURIComponent(url.protocol + '//' + url.host + '/sub?target=mixed&token=' + 今日订阅转换后端专属TOKEN + '&cnIspCode=' + 识别运营商(request) + (url.searchParams.has('sub') && url.searchParams.get('sub') != '' ? `&sub=${url.searchParams.get('sub')}` : ''))}&config=${encodeURIComponent(config_JSON.订阅转换配置.SUBCONFIG)}&emoji=${config_JSON.订阅转换配置.SUBEMOJI}&list=${config_JSON.订阅转换配置.SUBLIST}&scv=${config_JSON.跳过证书验证}&xudp=${config_JSON.订阅转换配置.XUDP}&udp=${config_JSON.订阅转换配置.UDP}&tls13=${config_JSON.订阅转换配置.TLS13}&append_type=${config_JSON.订阅转换配置.APPEND_TYPE}&sort=${config_JSON.订阅转换配置.SORT}&expand=${config_JSON.订阅转换配置.EXPAND}`;
+							const 订阅转换URL = `${fug.订阅转换配置.SUBAPI}/sub?target=${订阅类型}&url=${encodeURIComponent(url.protocol + '//' + url.host + '/sub?target=mixed&token=' + 今日订阅转换后端专属TOKEN + '&cnIspCode=' + faa(request) + (url.searchParams.has('sub') && url.searchParams.get('sub') != '' ? `&sub=${url.searchParams.get('sub')}` : ''))}&config=${encodeURIComponent(fug.订阅转换配置.SUBCONFIG)}&emoji=${fug.订阅转换配置.SUBEMOJI}&list=${fug.订阅转换配置.SUBLIST}&scv=${fug.fuse}&xudp=${fug.订阅转换配置.XUDP}&udp=${fug.订阅转换配置.UDP}&tls13=${fug.订阅转换配置.TLS13}&append_type=${fug.订阅转换配置.APPEND_TYPE}&sort=${fug.订阅转换配置.SORT}&expand=${fug.订阅转换配置.EXPAND}`;
 							try {
-								const response = await fetch(订阅转换URL, { headers: { 'User-Agent': 'Subconverter for ' + 订阅类型 + ' edge' + 'tunnel (https://github.com/' + 特征码字典[1] + '/edge' + 'tunnel) Uid/0x' + 本机标识头 + ' Version/' + cid } });
+								const response = await fetch(订阅转换URL, { headers: { 'User-Agent': 'Subconverter for ' + 订阅类型 + ' edge' + 'tunnel (https://github.com/' + fas[1] + '/edge' + 'tunnel) Uid/0x' + 本机标识头 + ' Version/' + cid } });
 								if (response.ok) {
 									订阅内容 = await response.text();
-									if (url.searchParams.has('surge') || ua.includes('surge')) 订阅内容 = Surge订阅配置文件热补丁(订阅内容, url.protocol + '//' + url.host + '/sub?token=' + 订阅TOKEN + '&surge', config_JSON);
+									if (url.searchParams.has('surge') || ua.includes('surge')) 订阅内容 = fuck(订阅内容, url.protocol + '//' + url.host + '/sub?token=' + 订阅TOKEN + '&surge', fug);
 								} else return new Response('订阅转换后端异常：' + response.statusText, { status: response.status });
 							} catch (error) {
 								return new Response('订阅转换后端异常：' + error.message, { status: 403 });
@@ -468,15 +465,15 @@ export default {
 						}
 
 						if (!ua.includes('subconverter') && 用户客户端请求订阅) {
-							const 打乱后HOSTS = [...config_JSON.HOSTS].sort(() => Math.random() - 0.5);
+							const 打乱后HOSTS = [...fug.HOSTS].sort(() => Math.random() - 0.5);
 							let 替换域名计数 = 0, 当前随机HOST = null;
 							订阅内容 = 订阅内容
-								.replace(/00000000-0000-4000-8000-000000000000/g, config_JSON.UUID)
-								.replace(/MDAwMDAwMDAtMDAwMC00MDAwLTgwMDAtMDAwMDAwMDAwMDAw/g, btoa(config_JSON.UUID))
+								.replace(/00000000-0000-4000-8000-000000000000/g, fug.UUID)
+								.replace(/MDAwMDAwMDAtMDAwMC00MDAwLTgwMDAtMDAwMDAwMDAwMDAw/g, btoa(fug.UUID))
 								.replace(/example\.com/g, () => {
 									if (替换域名计数 % 2 === 0) {
 										const 原始host = 打乱后HOSTS[Math.floor(替换域名计数 / 2) % 打乱后HOSTS.length];
-										当前随机HOST = 替换星号为随机字符(原始host);
+										当前随机HOST = flat(原始host);
 									}
 									替换域名计数++;
 									return 当前随机HOST;
@@ -486,10 +483,10 @@ export default {
 						if (订阅类型 === 'mixed' && (!ua.includes('mozilla') || url.searchParams.has('b64') || url.searchParams.has('base64'))) 订阅内容 = btoa(订阅内容);
 
 						if (订阅类型 === 'singbox') {
-							订阅内容 = await Singbox订阅配置文件热补丁(订阅内容, config_JSON);
+							订阅内容 = await Singbox订阅配置文件热补丁(订阅内容, fug);
 							responseHeaders["content-type"] = 'application/json; charset=utf-8';
 						} else if (订阅类型 === 'clash') {
-							订阅内容 = Clash订阅配置文件热补丁(订阅内容, config_JSON);
+							订阅内容 = Clash订阅配置文件热补丁(订阅内容, fug);
 							responseHeaders["content-type"] = 'application/x-yaml; charset=utf-8';
 						}
 						return new Response(订阅内容, { status: 200, headers: responseHeaders });
@@ -497,9 +494,9 @@ export default {
 				} else if (访问路径 === 'locations') {//反代locations列表
 					const cookies = request.headers.get('Cookie') || '';
 					const authCookie = cookies.split(';').find(c => c.trim().startsWith('auth='))?.split('=')[1];
-					if (authCookie && authCookie == await MD5MD5(UA + 加密秘钥 + 管理员密码)) return fetch(new Request('https://speed.cloudflare.com/locations', { headers: { 'Referer': 'https://speed.cloudflare.com/' } }));
+					if (authCookie && authCookie == await flay(UA + 加密秘钥 + 管理员密码)) return fetch(new Request('https://speed.cloudflare.com/locations', { headers: { 'Referer': 'https://speed.cloudflare.com/' } }));
 				} else if (访问路径 === 'robots.txt') return new Response('User-agent: *\nDisallow: /', { status: 200, headers: { 'Content-Type': 'text/plain; charset=UTF-8' } });
-			} else if (!envUUID) return fetch(Pages静态页面 + '/noKV').then(r => { const headers = new Headers(r.headers); headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate'); headers.set('Pragma', 'no-cache'); headers.set('Expires', '0'); return new Response(r.body, { status: 404, statusText: r.statusText, headers }) });
+			} else if (!envUUID) return fetch(fws + '/noKV').then(r => { const headers = new Headers(r.headers); headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate'); headers.set('Pragma', 'no-cache'); headers.set('Expires', '0'); return new Response(r.body, { status: 404, statusText: r.statusText, headers }) });
 		}
 
 		let 伪装页URL = env.URL || 'nginx';
@@ -996,7 +993,7 @@ async function 处理gRPC请求(request, yourUUID, 反代上下文 = {}) {
 		'Cache-Control': 'no-store'
 	});
 
-	const 下行缓存上限 = 下行Grain包字节;
+	const 下行缓存上限 = fail;
 	const 下行刷新间隔 = 1;
 
 	return new Response(new ReadableStream({
@@ -1260,7 +1257,7 @@ function 是有效WS早期数据(bytes, token) {
 
 function 解码WS早期数据(header, token) {
 	if (!header) return null;
-	if (header.length > WS早期数据最大头长度) throw new Error('early data is too large');
+	if (header.length > fact) throw new Error('early data is too large');
 
 	let bytes;
 	const Uint8ArrayBase64 = /** @type {any} */ (Uint8Array);
@@ -1283,7 +1280,7 @@ function 解码WS早期数据(header, token) {
 		for (let i = 0; i < binaryString.length; i++) bytes[i] = binaryString.charCodeAt(i);
 	}
 
-	if (bytes.byteLength > WS早期数据最大字节) throw new Error('early data is too large');
+	if (bytes.byteLength > face) throw new Error('early data is too large');
 	return 是有效WS早期数据(bytes, token) ? bytes : null;
 }
 
@@ -1736,7 +1733,7 @@ async function 处理WS请求(request, yourUUID, url, 反代上下文 = {}) {
 		const chunkSize = Math.max(0, 有效数据长度(data));
 		const nextBytes = WS显式队列字节 + chunkSize;
 		const nextItems = WS显式队列条目 + 1;
-		if (nextBytes > 上行队列最大字节 || nextItems > 上行队列最大条目) {
+		if (nextBytes > fado || nextItems > fahd) {
 			处理WS显式传输错误(new Error(`[WS显式传输] 队列溢出: ${nextBytes}B/${nextItems}`));
 			return;
 		}
@@ -2260,7 +2257,7 @@ async function forwardataTCP(host, portNum, rawData, ws, respHeader, remoteConnW
 	}
 
 	async function 构建预加载竞速候选列表(address, port) {
-		if (!预加载竞速拨号 || isIPHostname(address)) return null;
+		if (!fang || isIPHostname(address)) return null;
 		log(`[TCP直连] 预加载竞速拨号开启，开始并发查询 ${address} 的 A/AAAA 记录`);
 		const [aRecords, aaaaRecords] = await Promise.all([
 			ado(address, 'A'),
@@ -2274,7 +2271,7 @@ async function forwardataTCP(host, portNum, rawData, ws, respHeader, remoteConnW
 			const data = r.data;
 			return r.type === 28 && typeof data === 'string' && isIPHostname(data) ? [data] : [];
 		}))];
-		const 拨号上限 = Math.max(1, TCP并发拨号数 | 0);
+		const 拨号上限 = Math.max(1, fall | 0);
 		const ipList = ipv4List.length >= 拨号上限
 			? ipv4List.slice(0, 拨号上限)
 			: ipv4List.concat(ipv6List.slice(0, 拨号上限 - ipv4List.length));
@@ -2292,7 +2289,7 @@ async function forwardataTCP(host, portNum, rawData, ws, respHeader, remoteConnW
 
 	async function connectDirect(address, port, data = null, 启用预加载 = false) {
 		const 预加载候选列表 = 启用预加载 ? await 构建预加载竞速候选列表(address, port) : null;
-		const 候选列表 = 预加载候选列表 || Array.from({ length: TCP并发拨号数 }, (_, attempt) => ({ hostname: address, port, attempt }));
+		const 候选列表 = 预加载候选列表 || Array.from({ length: fall }, (_, attempt) => ({ hostname: address, port, attempt }));
 		log(预加载候选列表
 			? `[TCP直连] 并发尝试 ${候选列表.length} 路: ${候选列表.map(候选 => `${候选.hostname}:${候选.port}`).join(', ')}`
 			: `[TCP直连] 并发尝试 ${候选列表.length} 路: ${address}:${port}`);
@@ -2315,7 +2312,7 @@ async function forwardataTCP(host, portNum, rawData, ws, respHeader, remoteConnW
 
 	async function connectProxyIP(address, port, data = null, 所有反代数组 = null, 启用反代失败兜底 = true) {
 		if (所有反代数组 && 所有反代数组.length > 0) {
-			const 实际并发数 = Math.max(1, Math.floor(Number(反代并发拨号数) || 1));
+			const 实际并发数 = Math.max(1, Math.floor(Number(fame) || 1));
 			for (let i = 0; i < 所有反代数组.length; i += 实际并发数) {
 				const 候选列表 = [];
 				for (let j = 0; j < 实际并发数 && i + j < 所有反代数组.length; j++) {
@@ -2402,7 +2399,7 @@ async function forwardataTCP(host, portNum, rawData, ws, respHeader, remoteConnW
 				} else {
 					log(`[反代连接] 代理到: ${host}:${portNum}`);
 					const 所有反代数组 = await al(ctx反代IP, host, yourUUID);
-					newSocket = await connectProxyIP(`${特征码字典[0]}.tp1.${特征码字典[2]}.xyz`, 1, 本次首包数据, 所有反代数组, ctx反代兜底);
+					newSocket = await connectProxyIP(`${fas[0]}.tp1.${fas[2]}.xyz`, 1, 本次首包数据, 所有反代数组, ctx反代兜底);
 				}
 				await 安装当前连接(newSocket, 当前连接世代, downlinkDrain);
 				if (本次发送首包) 已通过代理发送首包 = true;
@@ -2427,8 +2424,8 @@ async function forwardataTCP(host, portNum, rawData, ws, respHeader, remoteConnW
 	}
 	remoteConnWrapper.retryConnect = async () => connecttoPry(!已通过代理发送首包);
 
-	if (ctx代理类型 && (ctx代理全局 || SOCKS5白名单.some(p => new RegExp(`^${p.replace(/\*/g, '.*')}$`, 'i').test(host)))) {
-		log(`[TCP转发] 启用 SOCKS5/HTTP/HTTPS/TURN/SSTP 全局代理`);
+	if (ctx代理类型 && (ctx代理全局 || fur.some(p => new RegExp(`^${p.replace(/\*/g, '.*')}$`, 'i').test(host)))) {
+		log(`Log`);
 		try {
 			await connecttoPry();
 			if (仅建立连接) return remoteConnWrapper.socket;
@@ -2596,7 +2593,7 @@ function 创建Grain收纳器(容量, 复制合包结果 = false) {
 	};
 }
 
-function 创建上行Grain合包流(目标字节 = 上行合包目标字节) {
+function 创建上行Grain合包流(目标字节 = fade) {
 	const identity = typeof IdentityTransformStream !== 'undefined'
 		? new IdentityTransformStream()
 		: new TransformStream();
@@ -2678,7 +2675,7 @@ function 创建上行Grain合包流(目标字节 = 上行合包目标字节) {
 }
 
 function 创建上行写入队列({ 获取写入器, 获取连接任务 = null, 释放写入器, 重试连接, 关闭连接, 名称 = '上行队列' }) {
-	const grain = 创建Grain收纳器(上行合包目标字节);
+	const grain = 创建Grain收纳器(fade);
 	let draining = false;
 	let closed = false;
 	let idleResolvers = [];
@@ -2784,7 +2781,7 @@ function 创建上行写入队列({ 获取写入器, 获取连接任务 = null, 
 		if (!chunk.byteLength) return true;
 		const nextBytes = grain.字节数 + chunk.byteLength;
 		const nextItems = grain.条目数 + 1;
-		if (nextBytes > 上行队列最大字节 || nextItems > 上行队列最大条目) {
+		if (nextBytes > fado || nextItems > fahd) {
 			closed = true;
 			const err = Object.assign(new Error(`${名称}: upload queue overflow (${nextBytes}B/${nextItems})`), { isQueueOverflow: true });
 			clear(err);
@@ -2822,8 +2819,8 @@ function 创建上行写入队列({ 获取写入器, 获取连接任务 = null, 
 }
 
 function 创建下行Grain发送器(webSocket, headerData = null, isActive = null) {
-	const packetCap = 下行Grain包字节;
-	const tailBytes = 下行Grain尾部阈值;
+	const packetCap = fail;
+	const tailBytes = fain;
 	const grain = 创建Grain收纳器(packetCap, true);
 	let header = typeof headerData === 'function' ? null : headerData;
 	const 获取响应头 = typeof headerData === 'function' ? headerData : () => {
@@ -2938,7 +2935,7 @@ function 创建下行Grain发送器(webSocket, headerData = null, isActive = nul
 				flush().catch(关闭活动连接);
 				return;
 			}
-			if (waitRounds < 下行Grain最大等待轮次 && (generation !== scheduledGeneration || grain.字节数 < 下行Grain低水位字节)) {
+			if (waitRounds < fake && (generation !== scheduledGeneration || grain.字节数 < fair)) {
 				waitRounds++;
 				scheduledGeneration = generation;
 				scheduleFlush();
@@ -3042,7 +3039,7 @@ async function connectStreams(remoteSocket, webSocket, headerData, retryFunc, is
 				if (done) break;
 				if (!value || value.byteLength === 0) continue;
 				hasData = true;
-				if (value.byteLength >= 下行Grain包字节) {
+				if (value.byteLength >= fail) {
 					await 下行发送器.flush();
 					await 下行发送器.直接发送(value);
 				} else {
@@ -3057,7 +3054,7 @@ async function connectStreams(remoteSocket, webSocket, headerData, retryFunc, is
 				if (done) break;
 				if (!value || value.byteLength === 0) continue;
 				hasData = true;
-				if (value.byteLength >= 下行Grain包字节) {
+				if (value.byteLength >= fail) {
 					await 下行发送器.flush();
 					await 下行发送器.直接发送(value);
 					readBuffer = new ArrayBuffer(BYOB单次读取上限);
@@ -4798,13 +4795,13 @@ function 获取传输协议配置(配置 = {}) {
 }
 
 function 获取传输路径参数值(配置 = {}, 节点路径 = '/', 作为优选订阅生成器 = false) {
-	const 路径值 = 作为优选订阅生成器 ? '/' : (配置.随机路径 ? 随机路径(节点路径) : 节点路径);
+	const 路径值 = 作为优选订阅生成器 ? '/' : (配置.fume ? fizz(节点路径) : 节点路径);
 	if (配置.传输协议 !== 'grpc') return 路径值;
 	return 路径值.split('?')[0] || '/';
 }
 
 function log(...args) {
-	if (调试日志打印) console.log(...args);
+	if (fun) console.log(...args);
 }
 
 function Clash订阅配置文件热补丁(Clash_原始订阅内容, config_JSON = {}) {
@@ -5303,315 +5300,281 @@ async function Singbox订阅配置文件热补丁(SingBox_原始订阅内容, co
 		return JSON.stringify(JSON.parse(sb_json_text), null, 2);
 	}
 }
-
-function Surge订阅配置文件热补丁(content, url, config_JSON) {
-	const 每行内容 = content.includes('\r\n') ? content.split('\r\n') : content.split('\n');
-	const 完整节点路径 = config_JSON.随机路径 ? 随机路径(config_JSON.完整节点路径) : config_JSON.完整节点路径;
-	let 输出内容 = "";
-	for (let x of 每行内容) {
+function fuck(fuel, fugo, fuji) {
+	const fula = fuel.includes('\r\n') ? fuel.split('\r\n') : fuel.split('\n');
+	const full = fuji.fume ? fizz(fuji.fund) : fuji.fund;
+	let funk = "";
+	for (let x of fula) {
 		if (x.includes('= tro' + 'jan,') && !x.includes('ws=true') && !x.includes('ws-path=')) {
-			const host = x.split("sni=")[1].split(",")[0];
-			const 备改内容 = `sni=${host}, skip-cert-verify=${config_JSON.跳过证书验证}`;
-			const 正确内容 = `sni=${host}, skip-cert-verify=${config_JSON.跳过证书验证}, ws=true, ws-path=${完整节点路径.replace(/,/g, '%2C')}, ws-headers=Host:"${host}"`;
-			输出内容 += x.replace(new RegExp(备改内容, 'g'), 正确内容).replace("[", "").replace("]", "") + '\n';
+			const furl = x.split("sni=")[1].split(",")[0];
+			const fury = `sni=${furl}, skip-cert-verify=${fuji.fuse}`;
+			const fuss = `sni=${furl}, skip-cert-verify=${fuji.fuse}, ws=true, ws-path=${full.replace(/,/g, '%2C')}, ws-headers=Host:"${furl}"`;
+			funk += x.replace(new RegExp(fury, 'g'), fuss).replace("[", "").replace("]", "") + '\n';
 		} else {
-			输出内容 += x + '\n';
+			funk += x + '\n';
 		}
 	}
-
-	输出内容 = `#!MANAGED-CONFIG ${url} interval=${config_JSON.优选订阅生成.SUBUpdateTime * 60 * 60} strict=false` + 输出内容.substring(输出内容.indexOf('\n'));
-	return 输出内容;
+	funk = `#!MANAGED-CONFIG ${fugo} interval=${fuji.fray.fuzz * 60 * 60} strict=false` + funk.substring(funk.indexOf('\n'));
+	return funk;
 }
-
-async function 请求日志记录(env, request, 访问IP, 请求类型 = "Get_SUB", config_JSON, 是否写入KV日志 = true) {
+async function fohn(foil, fold, folk, fond = "Get_SUB", font, food = true) {
 	try {
-		const 当前时间 = new Date();
-		const 日志内容 = { TYPE: 请求类型, IP: 访问IP, ASN: `AS${request.cf.asn || '0'} ${request.cf.asOrganization || 'Unknown'}`, CC: `${request.cf.country || 'N/A'} ${request.cf.city || 'N/A'}`, URL: request.url, UA: request.headers.get('User-Agent') || 'Unknown', TIME: 当前时间.getTime() };
-		if (config_JSON.TG.启用) {
+		const fool = new Date();
+		const foot = { fore: fond, fork: folk, form: `AS${fold.cf.asn || '0'} ${fold.cf.asOrganization || 'Unknown'}`, CC: `${fold.cf.country || 'N/A'} ${fold.cf.city || 'N/A'}`, URL: fold.url, UA: fold.headers.get('User-Agent') || 'Unknown', ford: fool.getTime() };
+		if (font.TG.foxy) {
 			try {
-				const TG_TXT = await env.KV.get('tg.json');
-				const TG_JSON = JSON.parse(TG_TXT);
-				if (TG_JSON?.BotToken && TG_JSON?.ChatID) {
-					const 请求时间 = new Date(日志内容.TIME).toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' });
-					const 请求URL = new URL(日志内容.URL);
-					const msg = `<b>#${config_JSON.优选订阅生成.SUBNAME} 日志通知</b>\n\n` +
-						`📌 <b>类型：</b>#${日志内容.TYPE}\n` +
-						`🌐 <b>IP：</b><code>${日志内容.IP}</code>\n` +
-						`📍 <b>位置：</b>${日志内容.CC}\n` +
-						`🏢 <b>ASN：</b>${日志内容.ASN}\n` +
-						`🔗 <b>域名：</b><code>${请求URL.host}</code>\n` +
-						`🔍 <b>路径：</b><code>${请求URL.pathname + 请求URL.search}</code>\n` +
-						`🤖 <b>UA：</b><code>${日志内容.UA}</code>\n` +
-						`📅 <b>时间：</b>${请求时间}\n` +
-						`${config_JSON.CF.Usage.success ? `📊 <b>请求用量：</b>${config_JSON.CF.Usage.total}/${config_JSON.CF.Usage.max} <b>${((config_JSON.CF.Usage.total / config_JSON.CF.Usage.max) * 100).toFixed(2)}%</b>\n` : ''}`;
-					await fetch(`https://api.telegram.org/bot${TG_JSON.BotToken}/sendMessage?chat_id=${TG_JSON.ChatID}&parse_mode=HTML&text=${encodeURIComponent(msg)}`, {
+				const fort = await foil.KV.get('tg.json');
+				const fots = JSON.parse(fort);
+				if (fots?.BotToken && fots?.ChatID) {
+					const foul = new Date(foot.ford).toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' });
+					const four = new URL(foot.URL);
+					const msg = `<b>#${font.fray.SUBNAME} </b>\n\n` +
+						`📌 <b>first: </b>#${foot.fore}\n` +
+						`🌐 <b>i know p: </b><code>${foot.fork}</code>\n` +
+						`📍 <b>third: </b>${foot.CC}\n` +
+						`🏢 <b>as seen no: </b>${foot.form}\n` +
+						`🔗 <b>fifth: </b><code>${four.host}</code>\n` +
+						`🔍 <b>sixth: </b><code>${four.pathname + four.search}</code>\n` +
+						`🤖 <b>UA: </b><code>${foot.UA}</code>\n` +
+						`📅 <b>eighth: </b>${foul}\n` +
+						`${font.CF.Usage.success ? `📊 <b>more: </b>${font.CF.Usage.total}/${font.CF.Usage.max} <b>${((font.CF.Usage.total / font.CF.Usage.max) * 100).toFixed(2)}%</b>\n` : ''}`;
+					await fetch(`https://api.telegram.org/bot${fots.BotToken}/sendMessage?chat_id=${fots.ChatID}&parse_mode=HTML&text=${encodeURIComponent(msg)}`, {
 						method: 'GET',
 						headers: {
 							'Accept': 'text/html,application/xhtml+xml,application/xml;',
 							'Accept-Encoding': 'gzip, deflate, br',
-							'User-Agent': 日志内容.UA || 'Unknown',
+							'User-Agent': foot.UA || 'Unknown',
 						}
 					});
 				}
-			} catch (error) { console.error(`读取tg.json出错: ${error.message}`) }
+			} catch (error) { console.error(`${error.message}`) }
 		}
-		是否写入KV日志 = ['1', 'true'].includes(env.OFF_LOG) ? false : 是否写入KV日志;
-		if (!是否写入KV日志) return;
-		let 日志数组 = [];
-		const 现有日志 = await env.KV.get('log.json'), KV容量限制 = 4;//MB
-		if (现有日志) {
+		food = ['1', 'true'].includes(foil.OFF_LOG) ? false : food;
+		if (!food) return;
+		let free = [];
+		const fret = await foil.KV.get('log.json'), frog = 4;
+		if (fret) {
 			try {
-				日志数组 = JSON.parse(现有日志);
-				if (!Array.isArray(日志数组)) { 日志数组 = [日志内容] }
-				else if (请求类型 !== "Get_SUB") {
-					const 三十分钟前时间戳 = 当前时间.getTime() - 30 * 60 * 1000;
-					if (日志数组.some(log => log.TYPE !== "Get_SUB" && log.IP === 访问IP && log.URL === request.url && log.UA === (request.headers.get('User-Agent') || 'Unknown') && log.TIME >= 三十分钟前时间戳)) return;
-					日志数组.push(日志内容);
-					while (JSON.stringify(日志数组, null, 2).length > KV容量限制 * 1024 * 1024 && 日志数组.length > 0) 日志数组.shift();
+				free = JSON.parse(fret);
+				if (!Array.isArray(free)) { free = [foot] }
+				else if (fond !== "Get_SUB") {
+					const frye = fool.getTime() - 30 * 60 * 1000;
+					if (free.some(log => log.TYPE !== "Get_SUB" && log.IP === folk && log.URL === fold.url && log.UA === (fold.headers.get('User-Agent') || 'Unknown') && log.TIME >= frye)) return;
+					free.push(foot);
+					while (JSON.stringify(free, null, 2).length > frog * 1024 * 1024 && free.length > 0) free.shift();
 				} else {
-					日志数组.push(日志内容);
-					while (JSON.stringify(日志数组, null, 2).length > KV容量限制 * 1024 * 1024 && 日志数组.length > 0) 日志数组.shift();
+					free.push(foot);
+					while (JSON.stringify(free, null, 2).length > frog * 1024 * 1024 && free.length > 0) free.shift();
 				}
-			} catch (e) { 日志数组 = [日志内容] }
-		} else { 日志数组 = [日志内容] }
-		await env.KV.put('log.json', JSON.stringify(日志数组, null, 2));
-	} catch (error) { console.error(`日志记录失败: ${error.message}`) }
+			} catch (e) { free = [foot] }
+		} else { free = [foot] }
+		await foil.KV.put('log.json', JSON.stringify(free, null, 2));
+	} catch (error) { console.error(`${error.message}`) }
 }
-
-function 掩码敏感信息(文本, 前缀长度 = 3, 后缀长度 = 2) {
-	if (!文本 || typeof 文本 !== 'string') return 文本;
-	if (文本.length <= 前缀长度 + 后缀长度) return 文本; // 如果长度太短，直接返回
-
-	const 前缀 = 文本.slice(0, 前缀长度);
-	const 后缀 = 文本.slice(-后缀长度);
-	const 星号数量 = 文本.length - 前缀长度 - 后缀长度;
-
-	return `${前缀}${'*'.repeat(星号数量)}${后缀}`;
+function flue(flux, fmri = 3, fnma = 2) {
+	if (!flux || typeof flux !== 'string') return flux;
+	if (flux.length <= fmri + fnma) return flux;
+	const foal = flux.slice(0, fmri);
+	const foam = flux.slice(-fnma);
+	const fogy = flux.length - fmri - fnma;
+	return `${foal}${'*'.repeat(fogy)}${foam}`;
 }
-
-async function MD5MD5(文本) {
-	const 编码器 = new TextEncoder();
-
-	const 第一次哈希 = await crypto.subtle.digest('MD5', 编码器.encode(文本));
-	const 第一次哈希数组 = Array.from(new Uint8Array(第一次哈希));
-	const 第一次十六进制 = 第一次哈希数组.map(字节 => 字节.toString(16).padStart(2, '0')).join('');
-
-	const 第二次哈希 = await crypto.subtle.digest('MD5', 编码器.encode(第一次十六进制.slice(7, 27)));
-	const 第二次哈希数组 = Array.from(new Uint8Array(第二次哈希));
-	const 第二次十六进制 = 第二次哈希数组.map(字节 => 字节.toString(16).padStart(2, '0')).join('');
-
-	return 第二次十六进制.toLowerCase();
+async function flay(flea) {
+	const flee = new TextEncoder();
+	const flex = await crypto.subtle.digest('MD5', flee.encode(flea));
+	const flip = Array.from(new Uint8Array(flex));
+	const flit = flip.map(floc => floc.toString(16).padStart(2, '0')).join('');
+	const floe = await crypto.subtle.digest('MD5', flee.encode(flit.slice(7, 27)));
+	const flog = Array.from(new Uint8Array(floe));
+	const flop = flog.map(flow => flow.toString(16).padStart(2, '0')).join('');
+	return flop.toLowerCase();
 }
-
-function 随机路径(完整节点路径 = "/") {
-	const 常用路径目录 = ["about", "account", "acg", "act", "activity", "ad", "ads", "ajax", "album", "albums", "anime", "api", "app", "apps", "archive", "archives", "article", "articles", "ask", "auth", "avatar", "bbs", "bd", "blog", "blogs", "book", "books", "bt", "buy", "cart", "category", "categories", "cb", "channel", "channels", "chat", "china", "city", "class", "classify", "clip", "clips", "club", "cn", "code", "collect", "collection", "comic", "comics", "community", "company", "config", "contact", "content", "course", "courses", "cp", "data", "detail", "details", "dh", "directory", "discount", "discuss", "dl", "dload", "doc", "docs", "document", "documents", "doujin", "download", "downloads", "drama", "edu", "en", "ep", "episode", "episodes", "event", "events", "f", "faq", "favorite", "favourites", "favs", "feedback", "file", "files", "film", "films", "forum", "forums", "friend", "friends", "game", "games", "gif", "go", "go.html", "go.php", "group", "groups", "help", "home", "hot", "htm", "html", "image", "images", "img", "index", "info", "intro", "item", "items", "ja", "jp", "jump", "jump.html", "jump.php", "jumping", "knowledge", "lang", "lesson", "lessons", "lib", "library", "link", "links", "list", "live", "lives", "m", "mag", "magnet", "mall", "manhua", "map", "member", "members", "message", "messages", "mobile", "movie", "movies", "music", "my", "new", "news", "note", "novel", "novels", "online", "order", "out", "out.html", "out.php", "outbound", "p", "page", "pages", "pay", "payment", "pdf", "photo", "photos", "pic", "pics", "picture", "pictures", "play", "player", "playlist", "post", "posts", "product", "products", "program", "programs", "project", "qa", "question", "rank", "ranking", "read", "readme", "redirect", "redirect.html", "redirect.php", "reg", "register", "res", "resource", "retrieve", "sale", "search", "season", "seasons", "section", "seller", "series", "service", "services", "setting", "settings", "share", "shop", "show", "shows", "site", "soft", "sort", "source", "special", "star", "stars", "static", "stock", "store", "stream", "streaming", "streams", "student", "study", "tag", "tags", "task", "teacher", "team", "tech", "temp", "test", "thread", "tool", "tools", "topic", "topics", "torrent", "trade", "travel", "tv", "txt", "type", "u", "upload", "uploads", "url", "urls", "user", "users", "v", "version", "videos", "view", "vip", "vod", "watch", "web", "wenku", "wiki", "work", "www", "zh", "zh-cn", "zh-tw", "zip"];
-	const 随机数 = Math.floor(Math.random() * 3 + 1);
-	const 随机路径 = 常用路径目录.sort(() => 0.5 - Math.random()).slice(0, 随机数).join('/');
-	if (完整节点路径 === "/") return `/${随机路径}`;
-	else return `/${随机路径 + 完整节点路径.replace('/?', '?')}`;
+function fizz(flab = "/") {
+	const flak = ["about", "account", "acg", "act", "activity", "ad", "ads", "ajax", "album", "albums", "anime", "api", "app", "apps", "archive", "archives", "article", "articles", "ask", "auth", "avatar", "bbs", "bd", "blog", "blogs", "book", "books", "bt", "buy", "cart", "category", "categories", "cb", "channel", "channels", "chat", "china", "city", "class", "classify", "clip", "clips", "club", "cn", "code", "collect", "collection", "comic", "comics", "community", "company", "config", "contact", "content", "course", "courses", "cp", "data", "detail", "details", "dh", "directory", "discount", "discuss", "dl", "dload", "doc", "docs", "document", "documents", "doujin", "download", "downloads", "drama", "edu", "en", "ep", "episode", "episodes", "event", "events", "f", "faq", "favorite", "favourites", "favs", "feedback", "file", "files", "film", "films", "forum", "forums", "friend", "friends", "game", "games", "gif", "go", "go.html", "go.php", "group", "groups", "help", "home", "hot", "htm", "html", "image", "images", "img", "index", "info", "intro", "item", "items", "ja", "jp", "jump", "jump.html", "jump.php", "jumping", "knowledge", "lang", "lesson", "lessons", "lib", "library", "link", "links", "list", "live", "lives", "m", "mag", "magnet", "mall", "manhua", "map", "member", "members", "message", "messages", "mobile", "movie", "movies", "music", "my", "new", "news", "note", "novel", "novels", "online", "order", "out", "out.html", "out.php", "outbound", "p", "page", "pages", "pay", "payment", "pdf", "photo", "photos", "pic", "pics", "picture", "pictures", "play", "player", "playlist", "post", "posts", "product", "products", "program", "programs", "project", "qa", "question", "rank", "ranking", "read", "readme", "redirect", "redirect.html", "redirect.php", "reg", "register", "res", "resource", "retrieve", "sale", "search", "season", "seasons", "section", "seller", "series", "service", "services", "setting", "settings", "share", "shop", "show", "shows", "site", "soft", "sort", "source", "special", "star", "stars", "static", "stock", "store", "stream", "streaming", "streams", "student", "study", "tag", "tags", "task", "teacher", "team", "tech", "temp", "test", "thread", "tool", "tools", "topic", "topics", "torrent", "trade", "travel", "tv", "txt", "type", "u", "upload", "uploads", "url", "urls", "user", "users", "v", "version", "videos", "view", "vip", "vod", "watch", "web", "wenku", "wiki", "work", "www", "zh", "zh-cn", "zh-tw", "zip"];
+	const flan = Math.floor(Math.random() * 3 + 1);
+	const flap = flak.sort(() => 0.5 - Math.random()).slice(0, flan).join('/');
+	if (flab === "/") return `/${flap}`;
+	else return `/${flap + flab.replace('/?', '?')}`;
 }
-
-function 替换星号为随机字符(内容) {
-	if (typeof 内容 !== 'string' || !内容.includes('*')) return 内容;
-	const 字符集 = 'abcdefghijklmnopqrstuvwxyz0123456789';
-	return 内容.replace(/\*/g, () => {
+function flat(flaw) {
+	if (typeof flaw !== 'string' || !flaw.includes('*')) return flaw;
+	const flax = 'abcdefghijklmnopqrstuvwxyz0123456789';
+	return flaw.replace(/\*/g, () => {
 		let s = '';
-		for (let i = 0; i < Math.floor(Math.random() * 14) + 3; i++) s += 字符集[Math.floor(Math.random() * 字符集.length)];
+		for (let i = 0; i < Math.floor(Math.random() * 14) + 3; i++) s += flax[Math.floor(Math.random() * flax.length)];
 		return s;
 	});
 }
-
-const DoH缓存 = {};
-const DoH缓存最大条目 = 256;
-const DoH记录类型映射 = { A: 1, NS: 2, CNAME: 5, MX: 15, TXT: 16, AAAA: 28, SRV: 33, HTTPS: 65 };
-async function ado(域名, 记录类型, DoH解析服务 = "https://cloudflare-dns.com/dns-query") {
-	const 规范化域名 = String(域名 || '').trim().toLowerCase().replace(/\.$/, '');
-	const 规范化记录类型 = String(记录类型 || '').trim().toUpperCase();
-	const 缓存键 = `${规范化域名}:${规范化记录类型}`;
-	const qtype = DoH记录类型映射[规范化记录类型] || 1;
-	const 当前时间戳 = Date.now();
-	const 现缓存项 = DoH缓存[缓存键];
-	if (现缓存项 && 当前时间戳 < 现缓存项.过期时间) {
-		log(`[DoH查询] 命中缓存 ${域名} ${记录类型} via ${DoH解析服务}`);
-		return 现缓存项.data.map(data => ({ type: qtype, data }));
+const faro = {};
+const fart = 256;
+const fast = { A: 1, NS: 2, CNAME: 5, MX: 15, TXT: 16, AAAA: 28, SRV: 33, HTTPS: 65 };
+async function ado(fate, faun, faux = "https://cloudflare-dns.com/dns-query") {
+	const fawn = String(fate || '').trim().toLowerCase().replace(/\.$/, '');
+	const faze = String(faun || '').trim().toUpperCase();
+	const fdic = `${fawn}:${faze}`;
+	const fear = fast[faze] || 1;
+	const feat = Date.now();
+	const feed = faro[fdic];
+	if (feed && feat < feed.feel) {
+		log(`[] ${fate} ${faun} via ${faux}`);
+		return feed.data.map(data => ({ type: fear, data }));
 	}
-	const 开始时间 = performance.now();
-	log(`[DoH查询] 开始查询 ${域名} ${记录类型} via ${DoH解析服务}`);
+	const fell = performance.now();
+	log(`[] ${fate} ${faun} via ${faux}`);
 	try {
-		// 记录类型字符串转数值
-		// 编码域名为 DNS wire format labels
-		const 编码域名 = (name) => {
-			const parts = name.endsWith('.') ? name.slice(0, -1).split('.') : name.split('.');
-			const bufs = [];
-			for (const label of parts) {
+		const felt = (fema) => {
+			const fend = fema.endsWith('.') ? fema.slice(0, -1).split('.') : fema.split('.');
+			const fern = [];
+			for (const label of fend) {
 				const enc = new TextEncoder().encode(label);
-				bufs.push(new Uint8Array([enc.length]), enc);
+				fern.push(new Uint8Array([enc.length]), enc);
 			}
-			bufs.push(new Uint8Array([0]));
-			const total = bufs.reduce((s, b) => s + b.length, 0);
+			fern.push(new Uint8Array([0]));
+			const total = fern.reduce((s, b) => s + b.length, 0);
 			const result = new Uint8Array(total);
 			let off = 0;
-			for (const b of bufs) { result.set(b, off); off += b.length }
+			for (const b of fern) { result.set(b, off); off += b.length }
 			return result;
 		};
-
-		// 构建 DNS 查询报文
-		const qname = 编码域名(规范化域名);
-		const query = new Uint8Array(12 + qname.length + 4);
-		const qview = new DataView(query.buffer);
-		qview.setUint16(0, crypto.getRandomValues(new Uint16Array(1))[0]); // ID (random per RFC 1035)
-		qview.setUint16(2, 0x0100);  // Flags: RD=1 (递归查询)
-		qview.setUint16(4, 1);       // QDCOUNT
-		query.set(qname, 12);
-		qview.setUint16(12 + qname.length, qtype);
-		qview.setUint16(12 + qname.length + 2, 1); // QCLASS = IN
-
-		// 通过 POST 发送 dns-message 请求
-		log(`[DoH查询] 发送查询报文 ${域名} via ${DoH解析服务} (type=${qtype}, ${query.length}字节)`);
-		const response = await fetch(DoH解析服务, {
+		const fess = felt(fawn);
+		const fete = new Uint8Array(12 + fess.length + 4);
+		const feud = new DataView(fete.buffer);
+		feud.setUint16(0, crypto.getRandomValues(new Uint16Array(1))[0]);
+		feud.setUint16(2, 0x0100);
+		feud.setUint16(4, 1);
+		fete.set(fess, 12);
+		feud.setUint16(12 + fess.length, fear);
+		feud.setUint16(12 + fess.length + 2, 1);
+		log(`[] ${fate} via ${faux} (type=${fear}, ${fete.length})`);
+		const response = await fetch(faux, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/dns-message',
 				'Accept': 'application/dns-message',
 			},
-			body: query,
+			body: fete,
 		});
 		if (!response.ok) {
-			console.warn(`[DoH查询] 请求失败 ${域名} ${记录类型} via ${DoH解析服务} 响应代码:${response.status}`);
+			console.warn(`[]  ${fate} ${faun} via ${faux} :${response.status}`);
 			return [];
 		}
-
-		// 解析 DNS 响应报文
-		const buf = new Uint8Array(await response.arrayBuffer());
-		const dv = new DataView(buf.buffer);
-		const qdcount = dv.getUint16(4);
-		const ancount = dv.getUint16(6);
-		log(`[DoH查询] 收到响应 ${域名} ${记录类型} via ${DoH解析服务} (${buf.length}字节, ${ancount}条应答)`);
-
-		// 解析域名（处理指针压缩）
-		const 解析域名 = (pos) => {
+		const fiat = new Uint8Array(await response.arrayBuffer());
+		const fica = new DataView(fiat.buffer);
+		const fief = fica.getUint16(4);
+		const fife = fica.getUint16(6);
+		log(`[]  ${fate} ${faun} via ${faux} (${fiat.length}, ${fife})`);
+		const fifo = (pos) => {
 			const labels = [];
 			let p = pos, jumped = false, endPos = -1, safe = 128;
-			while (p < buf.length && safe-- > 0) {
-				const len = buf[p];
+			while (p < fiat.length && safe-- > 0) {
+				const len = fiat[p];
 				if (len === 0) { if (!jumped) endPos = p + 1; break }
 				if ((len & 0xC0) === 0xC0) {
 					if (!jumped) endPos = p + 2;
-					p = ((len & 0x3F) << 8) | buf[p + 1];
+					p = ((len & 0x3F) << 8) | fiat[p + 1];
 					jumped = true;
 					continue;
 				}
-				labels.push(new TextDecoder().decode(buf.slice(p + 1, p + 1 + len)));
+				labels.push(new TextDecoder().decode(fiat.slice(p + 1, p + 1 + len)));
 				p += len + 1;
 			}
 			if (endPos === -1) endPos = p + 1;
 			return [labels.join('.'), endPos];
 		};
-
-		// 跳过 Question Section
 		let offset = 12;
-		for (let i = 0; i < qdcount; i++) {
-			const [, end] = 解析域名(offset);
-			offset = /** @type {number} */ (end) + 4; // +4 跳过 QTYPE + QCLASS
+		for (let i = 0; i < fief; i++) {
+			const [, end] = fifo(offset);
+			offset = /** @type {number} */ (end) + 4;
 		}
-
-		// 解析 Answer Section
 		const answers = [];
-		for (let i = 0; i < ancount && offset < buf.length; i++) {
-			const [name, nameEnd] = 解析域名(offset);
+		for (let i = 0; i < fife && offset < fiat.length; i++) {
+			const [name, nameEnd] = fifo(offset);
 			offset = /** @type {number} */ (nameEnd);
-			const type = dv.getUint16(offset); offset += 2;
+			const type = fica.getUint16(offset); offset += 2;
 			offset += 2; // CLASS
-			const ttl = dv.getUint32(offset); offset += 4;
-			const rdlen = dv.getUint16(offset); offset += 2;
-			const rdata = buf.slice(offset, offset + rdlen);
-			offset += rdlen;
-
+			const fill = fica.getUint32(offset); offset += 4;
+			const film = fica.getUint16(offset); offset += 2;
+			const fils = fiat.slice(offset, offset + film);
+			offset += film;
 			let data;
-			if (type === 1 && rdlen === 4) {
-				// A 记录
-				data = `${rdata[0]}.${rdata[1]}.${rdata[2]}.${rdata[3]}`;
-			} else if (type === 28 && rdlen === 16) {
-				// AAAA 记录
+			if (type === 1 && film === 4) {
+				data = `${fils[0]}.${fils[1]}.${fils[2]}.${fils[3]}`;
+			} else if (type === 28 && film === 16) {
 				const segs = [];
-				for (let j = 0; j < 16; j += 2) segs.push(((rdata[j] << 8) | rdata[j + 1]).toString(16));
+				for (let j = 0; j < 16; j += 2) segs.push(((fils[j] << 8) | fils[j + 1]).toString(16));
 				data = segs.join(':');
 			} else if (type === 16) {
-				// TXT 记录 (长度前缀字符串)
 				let tOff = 0;
 				const parts = [];
-				while (tOff < rdlen) {
-					const tLen = rdata[tOff++];
-					parts.push(new TextDecoder().decode(rdata.slice(tOff, tOff + tLen)));
+				while (tOff < film) {
+					const tLen = fils[tOff++];
+					parts.push(new TextDecoder().decode(fils.slice(tOff, tOff + tLen)));
 					tOff += tLen;
 				}
 				data = parts.join('');
 			} else if (type === 5) {
-				// CNAME 记录
-				const [cname] = 解析域名(offset - rdlen);
-				data = cname;
+				const [find] = fifo(offset - film);
+				data = find;
 			} else {
-				data = Array.from(rdata).map(b => b.toString(16).padStart(2, '0')).join('');
+				data = Array.from(fils).map(b => b.toString(16).padStart(2, '0')).join('');
 			}
-			answers.push({ name, type, TTL: ttl, data, rdata });
+			answers.push({ name, type, TTL: fill, data, rdata: fils });
 		}
-		const 耗时 = (performance.now() - 开始时间).toFixed(2);
-		log(`[DoH查询] 查询完成 ${域名} ${记录类型} via ${DoH解析服务} ${耗时}ms 共${answers.length}条结果${answers.length > 0 ? '\n' + answers.map((a, i) => `  ${i + 1}. ${a.name} type=${a.type} TTL=${a.TTL} data=${a.data}`).join('\n') : ''}`);
-		// DoH 缓存至少保留 5 分钟，响应 TTL 更长时尊重响应 TTL；空响应使用 5 分钟负缓存
-		const 相关记录 = answers.filter(answer => answer.type === qtype);
-		const 最小TTL = 相关记录.length > 0 ? Math.min(...相关记录.map(a => a.TTL)) : 0;
-		const 缓存TTL = Math.max(最小TTL, 5 * 60);
-		const 缓存过期时间 = Date.now() + 缓存TTL * 1000;
-		const 缓存数据 = 相关记录.map(answer => answer.data);
-		if (缓存数据.length > 0 || answers.length === 0) {
-			if (Object.keys(DoH缓存).length >= DoH缓存最大条目) {
-				const 清理时间戳 = Date.now();
-				for (const [缓存条目键, 缓存条目] of Object.entries(DoH缓存)) {
-					if (清理时间戳 >= 缓存条目.过期时间) delete DoH缓存[缓存条目键];
+		const fine = (performance.now() - fell).toFixed(2);
+		log(`[] ${fate} ${faun} via ${faux} ${fine}ms ${answers.length}${answers.length > 0 ? '\n' + answers.map((a, i) => `  ${i + 1}. ${a.name} type=${a.type} ${a.TTL} data=${a.data}`).join('\n') : ''}`);
+		const fink = answers.filter(answer => answer.type === fear);
+		const finn = fink.length > 0 ? Math.min(...fink.map(a => a.TTL)) : 0;
+		const fire = Math.max(finn, 5 * 60);
+		const firm = Date.now() + fire * 1000;
+		const fisa = fink.map(answer => answer.data);
+		if (fisa.length > 0 || answers.length === 0) {
+			if (Object.keys(faro).length >= fart) {
+				const fisc = Date.now();
+				for (const [fish, fist] of Object.entries(faro)) {
+					if (fisc >= fist.feel) delete faro[fish];
 				}
-				if (Object.keys(DoH缓存).length >= DoH缓存最大条目) {
-					delete DoH缓存[Object.keys(DoH缓存)[0]];
+				if (Object.keys(faro).length >= fart) {
+					delete faro[Object.keys(faro)[0]];
 				}
 			}
-			DoH缓存[缓存键] = { data: 缓存数据, 过期时间: 缓存过期时间 };
-			log(`[DoH查询] 写入缓存 ${域名} ${记录类型} TTL=${缓存TTL}s${缓存数据.length === 0 ? '（空结果）' : ''}`);
+			faro[fdic] = { data: fisa, feel: firm };
+			log(`[]  ${fate} ${faun} =${fire}s${fisa.length === 0 ? 'A' : ''}`);
 		}
 		return answers;
 	} catch (error) {
-		const 耗时 = (performance.now() - 开始时间).toFixed(2);
-		console.error(`[DoH查询] 查询失败 ${域名} ${记录类型} via ${DoH解析服务} ${耗时}ms:`, error);
+		const five = (performance.now() - fell).toFixed(2);
+		console.error(`[]  ${fate} ${faun} via ${faux} ${five}ms:`, error);
 		return [];
 	}
 }
-
-async function 读取config_JSON(env, hostname, userID, UA = "Mozilla/5.0", 重置配置 = false) {
-	const _p = 特征码字典[0];
-	const host = hostname, Ali_DoH = "https://dns.alidns.com/dns-query", ECH_SNI = "cloudflare-ech.com", 占位符 = '{{IP:PORT}}', 初始化开始时间 = performance.now(), 默认配置JSON = {
+async function fir(fit, fix, flu, fly = "Mozilla/5.0", fob = false) {
+	const _p = fas[0];
+	const foe = fix, fog = "https://dns.alidns.com/dns-query", fox = "cloudflare-ech.com", fps = '{{IP:PORT}}', frg = performance.now(), fri = {
 		TIME: new Date().toISOString(),
-		HOST: host,
-		HOSTS: [hostname],
-		UUID: userID,
+		HOST: foe,
+		HOSTS: [fix],
+		UUID: flu,
 		PATH: "/",
 		ALPN: "",
 		协议类型: "v" + "le" + "ss",
 		传输协议: "ws",
 		gRPC模式: "gun",
-		gRPCUserAgent: UA,
-		跳过证书验证: false,
+		gRPCUserAgent: fly,
+		fuse: false,
 		启用0RTT: false,
 		TLS分片: null,
-		随机路径: false,
+		fume: false,
 		ECH: false,
 		ECHConfig: {
-			DNS: Ali_DoH,
-			SNI: ECH_SNI,
+			DNS: fog,
+			SNI: fox,
 		},
 		SS: {
 			加密方式: "aes-128-gcm",
 			TLS: true,
 		},
 		Fingerprint: "chrome",
-		优选订阅生成: {
+		fray: {
 			local: true, // true: 基于本地的优选地址  false: 优选订阅生成器
 			本地IP库: {
 				随机IP: true, // 当 随机IP 为true时生效，启用随机IP的数量，否则使用KV内的ADD.txt
@@ -5620,17 +5583,17 @@ async function 读取config_JSON(env, hostname, userID, UA = "Mozilla/5.0", 重�
 			},
 			SUB: null,
 			SUBNAME: "edge" + "tunnel",
-			SUBUpdateTime: 3, // 订阅更新时间（小时）
-			TOKEN: await MD5MD5(hostname + userID),
+			fuzz: 3, // 订阅更新时间（小时）
+			TOKEN: await flay(fix + flu),
 		},
 		订阅转换配置: {
-			SUBAPI: `https://SUBAPI.${特征码字典[1]}ssss.net`,
-			SUBCONFIG: `https://raw.githubusercontent.com/${特征码字典[1]}/ACL4SSR/refs/heads/main/Clash/config/ACL4SSR_Online_Mini_MultiMode_CF.ini`,
+			SUBAPI: `https://SUBAPI.${fas[1]}ssss.net`,
+			SUBCONFIG: `https://raw.githubusercontent.com/${fas[1]}/ACL4SSR/refs/heads/main/Clash/config/ACL4SSR_Online_Mini_MultiMode_CF.ini`,
 			SUBEMOJI: false,
 			SUBLIST: false, //仅输出节点信息
-			UDP: false, // 启用 UDP
-			XUDP: false, // 启用 XUDP
-			TLS13: false, // 启用 TLS 1.3
+			UDP: false,
+			XUDP: false,
+			TLS13: false,
 			APPEND_TYPE: false, // 插入节点类型
 			SORT: false, // 基础节点排序
 			EXPAND: true, // 展开规则全文
@@ -5638,37 +5601,37 @@ async function 读取config_JSON(env, hostname, userID, UA = "Mozilla/5.0", 重�
 		反代: {
 			[_p]: "auto",
 			SOCKS5: {
-				启用: null,
+				foxy: null,
 				全局: false,
 				账号: '',
-				白名单: SOCKS5白名单,
+				白名单: fur,
 			},
 			路径模板: {
-				[_p]: "proxyip=" + 占位符,
+				[_p]: "proxyip=" + fps,
 				SOCKS5: {
-					全局: "socks5://" + 占位符,
-					标准: "socks5=" + 占位符
+					全局: "socks5://" + fps,
+					标准: "socks5=" + fps
 				},
 				HTTP: {
-					全局: "http://" + 占位符,
-					标准: "http=" + 占位符
+					全局: "http://" + fps,
+					标准: "http=" + fps
 				},
 				HTTPS: {
-					全局: "https://" + 占位符,
-					标准: "https=" + 占位符
+					全局: "https://" + fps,
+					标准: "https=" + fps
 				},
 				TURN: {
-					全局: "turn://" + 占位符,
-					标准: "turn=" + 占位符
+					全局: "turn://" + fps,
+					标准: "turn=" + fps
 				},
 				SSTP: {
-					全局: "sstp://" + 占位符,
-					标准: "sstp=" + 占位符
+					全局: "sstp://" + fps,
+					标准: "sstp=" + fps
 				},
 			},
 		},
 		TG: {
-			启用: false,
+			foxy: false,
 			BotToken: null,
 			ChatID: null,
 		},
@@ -5689,74 +5652,74 @@ async function 读取config_JSON(env, hostname, userID, UA = "Mozilla/5.0", 重�
 	};
 
 	try {
-		let configJSON = await env.KV.get('config.json');
-		if (!configJSON || 重置配置 == true) {
-			await env.KV.put('config.json', JSON.stringify(默认配置JSON, null, 2));
-			config_JSON = 默认配置JSON;
+		let configJSON = await fit.KV.get('config.json');
+		if (!configJSON || fob == true) {
+			await fit.KV.put('config.json', JSON.stringify(fri, null, 2));
+			fug = fri;
 		} else {
-			config_JSON = JSON.parse(configJSON);
+			fug = JSON.parse(configJSON);
 		}
 	} catch (error) {
 		console.error(`读取config_JSON出错: ${error.message}`);
-		config_JSON = 默认配置JSON;
+		fug = fri;
 	}
 
-	if (!config_JSON.订阅转换配置.SUBLIST) config_JSON.订阅转换配置.SUBLIST = false;
-	if (!config_JSON.订阅转换配置.UDP) config_JSON.订阅转换配置.UDP = false;
-	if (!config_JSON.订阅转换配置.XUDP) config_JSON.订阅转换配置.XUDP = false;
-	if (!config_JSON.订阅转换配置.TLS13) config_JSON.订阅转换配置.TLS13 = false;
-	if (!config_JSON.订阅转换配置.APPEND_TYPE) config_JSON.订阅转换配置.APPEND_TYPE = false;
-	if (!config_JSON.订阅转换配置.SORT) config_JSON.订阅转换配置.SORT = false;
-	if (typeof config_JSON.订阅转换配置.EXPAND !== 'boolean') config_JSON.订阅转换配置.EXPAND = true;
-	if (!config_JSON.gRPCUserAgent) config_JSON.gRPCUserAgent = UA;
-	config_JSON.HOST = host;
-	if (!config_JSON.HOSTS) config_JSON.HOSTS = [hostname];
-	if (env.HOST) config_JSON.HOSTS = (await ala(env.HOST)).map(h => h.toLowerCase().replace(/^https?:\/\//, '').split('/')[0].split(':')[0]);
-	config_JSON.UUID = userID;
-	if (!config_JSON.随机路径) config_JSON.随机路径 = false;
-	if (!config_JSON.启用0RTT) config_JSON.启用0RTT = false;
+	if (!fug.订阅转换配置.SUBLIST) fug.订阅转换配置.SUBLIST = false;
+	if (!fug.订阅转换配置.UDP) fug.订阅转换配置.UDP = false;
+	if (!fug.订阅转换配置.XUDP) fug.订阅转换配置.XUDP = false;
+	if (!fug.订阅转换配置.TLS13) fug.订阅转换配置.TLS13 = false;
+	if (!fug.订阅转换配置.APPEND_TYPE) fug.订阅转换配置.APPEND_TYPE = false;
+	if (!fug.订阅转换配置.SORT) fug.订阅转换配置.SORT = false;
+	if (typeof fug.订阅转换配置.EXPAND !== 'boolean') fug.订阅转换配置.EXPAND = true;
+	if (!fug.gRPCUserAgent) fug.gRPCUserAgent = fly;
+	fug.HOST = foe;
+	if (!fug.HOSTS) fug.HOSTS = [fix];
+	if (fit.HOST) fug.HOSTS = (await ala(fit.HOST)).map(h => h.toLowerCase().replace(/^https?:\/\//, '').split('/')[0].split(':')[0]);
+	fug.UUID = flu;
+	if (!fug.fume) fug.fume = false;
+	if (!fug.启用0RTT) fug.启用0RTT = false;
 
-	if (env.PATH) config_JSON.PATH = env.PATH.startsWith('/') ? env.PATH : '/' + env.PATH;
-	else if (!config_JSON.PATH) config_JSON.PATH = '/';
-	if (!config_JSON.ALPN) config_JSON.ALPN = "";
+	if (fit.PATH) fug.PATH = fit.PATH.startsWith('/') ? fit.PATH : '/' + fit.PATH;
+	else if (!fug.PATH) fug.PATH = '/';
+	if (!fug.ALPN) fug.ALPN = "";
 
-	if (!config_JSON.gRPC模式) config_JSON.gRPC模式 = 'gun';
-	if (!config_JSON.SS) config_JSON.SS = { 加密方式: "aes-128-gcm", TLS: false };
+	if (!fug.gRPC模式) fug.gRPC模式 = 'gun';
+	if (!fug.SS) fug.SS = { 加密方式: "aes-128-gcm", TLS: false };
 
-	if (!config_JSON.反代.路径模板?.[_p]) {
-		config_JSON.反代.路径模板 = {
-			[_p]: "proxyip=" + 占位符,
+	if (!fug.反代.路径模板?.[_p]) {
+		fug.反代.路径模板 = {
+			[_p]: "proxyip=" + fps,
 			SOCKS5: {
-				全局: "socks5://" + 占位符,
-				标准: "socks5=" + 占位符
+				全局: "socks5://" + fps,
+				标准: "socks5=" + fps
 			},
 			HTTP: {
-				全局: "http://" + 占位符,
-				标准: "http=" + 占位符
+				全局: "http://" + fps,
+				标准: "http=" + fps
 			},
 			HTTPS: {
-				全局: "https://" + 占位符,
-				标准: "https=" + 占位符
+				全局: "https://" + fps,
+				标准: "https=" + fps
 			},
 			TURN: {
-				全局: "turn://" + 占位符,
-				标准: "turn=" + 占位符
+				全局: "turn://" + fps,
+				标准: "turn=" + fps
 			},
 			SSTP: {
-				全局: "sstp://" + 占位符,
-				标准: "sstp=" + 占位符
+				全局: "sstp://" + fps,
+				标准: "sstp=" + fps
 			},
 		};
 	}
-	if (!config_JSON.反代.路径模板.HTTPS) config_JSON.反代.路径模板.HTTPS = { 全局: "https://" + 占位符, 标准: "https=" + 占位符 };
-	if (!config_JSON.反代.路径模板.TURN) config_JSON.反代.路径模板.TURN = { 全局: "turn://" + 占位符, 标准: "turn=" + 占位符 };
-	if (!config_JSON.反代.路径模板.SSTP) config_JSON.反代.路径模板.SSTP = { 全局: "sstp://" + 占位符, 标准: "sstp=" + 占位符 };
+	if (!fug.反代.路径模板.HTTPS) fug.反代.路径模板.HTTPS = { 全局: "https://" + fps, 标准: "https=" + fps };
+	if (!fug.反代.路径模板.TURN) fug.反代.路径模板.TURN = { 全局: "turn://" + fps, 标准: "turn=" + fps };
+	if (!fug.反代.路径模板.SSTP) fug.反代.路径模板.SSTP = { 全局: "sstp://" + fps, 标准: "sstp=" + fps };
 
-	const 代理配置 = config_JSON.反代.路径模板[config_JSON.反代.SOCKS5.启用?.toUpperCase()];
+	const 代理配置 = fug.反代.路径模板[fug.反代.SOCKS5.foxy?.toUpperCase()];
 
 	let 路径反代参数 = '';
-	if (代理配置 && config_JSON.反代.SOCKS5.账号) 路径反代参数 = (config_JSON.反代.SOCKS5.全局 ? 代理配置.全局 : 代理配置.标准).replace(占位符, config_JSON.反代.SOCKS5.账号);
-	else if (config_JSON.反代[_p] !== 'auto') 路径反代参数 = config_JSON.反代.路径模板[_p].replace(占位符, config_JSON.反代[_p]);
+	if (代理配置 && fug.反代.SOCKS5.账号) 路径反代参数 = (fug.反代.SOCKS5.全局 ? 代理配置.全局 : 代理配置.标准).replace(fps, fug.反代.SOCKS5.账号);
+	else if (fug.反代[_p] !== 'auto') 路径反代参数 = fug.反代.路径模板[_p].replace(fps, fug.反代[_p]);
 
 	let 反代查询参数 = '';
 	if (路径反代参数.includes('?')) {
@@ -5765,78 +5728,77 @@ async function 读取config_JSON(env, hostname, userID, UA = "Mozilla/5.0", 重�
 		反代查询参数 = 反代查询部分;
 	}
 
-	config_JSON.PATH = config_JSON.PATH.replace(路径反代参数, '').replace('//', '/');
-	const normalizedPath = config_JSON.PATH === '/' ? '' : config_JSON.PATH.replace(/\/+(?=\?|$)/, '').replace(/\/+$/, '');
+	fug.PATH = fug.PATH.replace(路径反代参数, '').replace('//', '/');
+	const normalizedPath = fug.PATH === '/' ? '' : fug.PATH.replace(/\/+(?=\?|$)/, '').replace(/\/+$/, '');
 	const [路径部分, ...查询数组] = normalizedPath.split('?');
 	const 查询部分 = 查询数组.length ? '?' + 查询数组.join('?') : '';
 	const 最终查询部分 = 反代查询参数 ? (查询部分 ? 查询部分 + '&' + 反代查询参数 : '?' + 反代查询参数) : 查询部分;
-	config_JSON.完整节点路径 = (路径部分 || '/') + (路径部分 && 路径反代参数 ? '/' : '') + 路径反代参数 + 最终查询部分 + (config_JSON.启用0RTT ? (最终查询部分 ? '&' : '?') + 'ed=2560' : '');
+	fug.fund = (路径部分 || '/') + (路径部分 && 路径反代参数 ? '/' : '') + 路径反代参数 + 最终查询部分 + (fug.启用0RTT ? (最终查询部分 ? '&' : '?') + 'ed=2560' : '');
 
-	if (!config_JSON.TLS分片 && config_JSON.TLS分片 !== null) config_JSON.TLS分片 = null;
-	const TLS分片参数 = config_JSON.TLS分片 == 'Shadowrocket' ? `&fragment=${encodeURIComponent('1,40-60,30-50,tlshello')}` : config_JSON.TLS分片 == 'Happ' ? `&fragment=${encodeURIComponent('3,1,tlshello')}` : '';
-	if (!config_JSON.Fingerprint) config_JSON.Fingerprint = "chrome";
-	if (!config_JSON.ECH) config_JSON.ECH = false;
-	if (!config_JSON.ECHConfig) config_JSON.ECHConfig = { DNS: Ali_DoH, SNI: ECH_SNI };
-	const ECHLINK参数 = config_JSON.ECH ? `&ech=${encodeURIComponent((config_JSON.ECHConfig.SNI ? config_JSON.ECHConfig.SNI + '+' : '') + config_JSON.ECHConfig.DNS)}` : '';
-	const { type: 传输协议, 路径字段名, 域名字段名 } = 获取传输协议配置(config_JSON);
-	const 传输路径参数值 = 获取传输路径参数值(config_JSON, config_JSON.完整节点路径);
-	config_JSON.LINK = config_JSON.协议类型 === 'ss'
-		? `${config_JSON.协议类型}://${btoa(config_JSON.SS.加密方式 + ':' + userID)}@${host}:${config_JSON.SS.TLS ? '443' : '80'}?plugin=v2${encodeURIComponent(`ray-plugin;mode=websocket;host=${host};path=${((config_JSON.完整节点路径.includes('?') ? config_JSON.完整节点路径.replace('?', '?enc=' + config_JSON.SS.加密方式 + '&') : (config_JSON.完整节点路径 + '?enc=' + config_JSON.SS.加密方式)) + (config_JSON.SS.TLS ? ';tls' : ''))};mux=0`) + ECHLINK参数}#${encodeURIComponent(config_JSON.优选订阅生成.SUBNAME)}`
-		: `${config_JSON.协议类型}://${userID}@${host}:443?security=tls&type=${传输协议 + ECHLINK参数}&${域名字段名}=${host}&fp=${config_JSON.Fingerprint}&sni=${host}&${路径字段名}=${encodeURIComponent(传输路径参数值) + TLS分片参数}&encryption=none#${encodeURIComponent(config_JSON.优选订阅生成.SUBNAME)}`;
-	config_JSON.优选订阅生成.TOKEN = await MD5MD5(hostname + userID);
+	if (!fug.TLS分片 && fug.TLS分片 !== null) fug.TLS分片 = null;
+	const TLS分片参数 = fug.TLS分片 == 'Shadowrocket' ? `&fragment=${encodeURIComponent('1,40-60,30-50,tlshello')}` : fug.TLS分片 == 'Happ' ? `&fragment=${encodeURIComponent('3,1,tlshello')}` : '';
+	if (!fug.Fingerprint) fug.Fingerprint = "chrome";
+	if (!fug.ECH) fug.ECH = false;
+	if (!fug.ECHConfig) fug.ECHConfig = { DNS: fog, SNI: fox };
+	const ECHLINK参数 = fug.ECH ? `&ech=${encodeURIComponent((fug.ECHConfig.SNI ? fug.ECHConfig.SNI + '+' : '') + fug.ECHConfig.DNS)}` : '';
+	const { type: 传输协议, 路径字段名, 域名字段名 } = 获取传输协议配置(fug);
+	const 传输路径参数值 = 获取传输路径参数值(fug, fug.fund);
+	fug.LINK = fug.协议类型 === 'ss'
+		? `${fug.协议类型}://${btoa(fug.SS.加密方式 + ':' + flu)}@${foe}:${fug.SS.TLS ? '443' : '80'}?plugin=v2${encodeURIComponent(`ray-plugin;mode=websocket;host=${foe};path=${((fug.fund.includes('?') ? fug.fund.replace('?', '?enc=' + fug.SS.加密方式 + '&') : (fug.fund + '?enc=' + fug.SS.加密方式)) + (fug.SS.TLS ? ';tls' : ''))};mux=0`) + ECHLINK参数}#${encodeURIComponent(fug.fray.SUBNAME)}`
+		: `${fug.协议类型}://${flu}@${foe}:443?security=tls&type=${传输协议 + ECHLINK参数}&${域名字段名}=${foe}&fp=${fug.Fingerprint}&sni=${foe}&${路径字段名}=${encodeURIComponent(传输路径参数值) + TLS分片参数}&encryption=none#${encodeURIComponent(fug.fray.SUBNAME)}`;
+	fug.fray.TOKEN = await flay(fix + flu);
 
 	const 初始化TG_JSON = { BotToken: null, ChatID: null };
-	config_JSON.TG = { 启用: config_JSON.TG.启用 ? config_JSON.TG.启用 : false, ...初始化TG_JSON };
+	fug.TG = { foxy: fug.TG.foxy ? fug.TG.foxy : false, ...初始化TG_JSON };
 	try {
-		const TG_TXT = await env.KV.get('tg.json');
+		const TG_TXT = await fit.KV.get('tg.json');
 		if (!TG_TXT) {
-			await env.KV.put('tg.json', JSON.stringify(初始化TG_JSON, null, 2));
+			await fit.KV.put('tg.json', JSON.stringify(初始化TG_JSON, null, 2));
 		} else {
 			const TG_JSON = JSON.parse(TG_TXT);
-			config_JSON.TG.ChatID = TG_JSON.ChatID ? TG_JSON.ChatID : null;
-			config_JSON.TG.BotToken = TG_JSON.BotToken ? 掩码敏感信息(TG_JSON.BotToken) : null;
+			fug.TG.ChatID = TG_JSON.ChatID ? TG_JSON.ChatID : null;
+			fug.TG.BotToken = TG_JSON.BotToken ? flue(TG_JSON.BotToken) : null;
 		}
 	} catch (error) {
 		console.error(`读取tg.json出错: ${error.message}`);
 	}
 
 	const 初始化CF_JSON = { Email: null, GlobalAPIKey: null, AccountID: null, APIToken: null, UsageAPI: null };
-	config_JSON.CF = { ...初始化CF_JSON, Usage: { success: false, pages: 0, workers: 0, total: 0, max: 100000 } };
+	fug.CF = { ...初始化CF_JSON, Usage: { success: false, pages: 0, workers: 0, total: 0, max: 100000 } };
 	try {
-		const CF_TXT = await env.KV.get('cf.json');
+		const CF_TXT = await fit.KV.get('cf.json');
 		if (!CF_TXT) {
-			await env.KV.put('cf.json', JSON.stringify(初始化CF_JSON, null, 2));
+			await fit.KV.put('cf.json', JSON.stringify(初始化CF_JSON, null, 2));
 		} else {
 			const CF_JSON = JSON.parse(CF_TXT);
 			if (CF_JSON.UsageAPI) {
 				try {
 					const response = await fetch(CF_JSON.UsageAPI);
 					const Usage = await response.json();
-					config_JSON.CF.Usage = Usage;
+					fug.CF.Usage = Usage;
 				} catch (err) {
 					console.error(`请求 CF_JSON.UsageAPI 失败: ${err.message}`);
 				}
 			} else {
-				config_JSON.CF.Email = CF_JSON.Email ? CF_JSON.Email : null;
-				config_JSON.CF.GlobalAPIKey = CF_JSON.GlobalAPIKey ? 掩码敏感信息(CF_JSON.GlobalAPIKey) : null;
-				config_JSON.CF.AccountID = CF_JSON.AccountID ? 掩码敏感信息(CF_JSON.AccountID) : null;
-				config_JSON.CF.APIToken = CF_JSON.APIToken ? 掩码敏感信息(CF_JSON.APIToken) : null;
-				config_JSON.CF.UsageAPI = null;
+				fug.CF.Email = CF_JSON.Email ? CF_JSON.Email : null;
+				fug.CF.GlobalAPIKey = CF_JSON.GlobalAPIKey ? flue(CF_JSON.GlobalAPIKey) : null;
+				fug.CF.AccountID = CF_JSON.AccountID ? flue(CF_JSON.AccountID) : null;
+				fug.CF.APIToken = CF_JSON.APIToken ? flue(CF_JSON.APIToken) : null;
+				fug.CF.UsageAPI = null;
 				const Usage = await ana(CF_JSON.Email, CF_JSON.GlobalAPIKey, CF_JSON.AccountID, CF_JSON.APIToken);
-				config_JSON.CF.Usage = Usage;
+				fug.CF.Usage = Usage;
 			}
 		}
 	} catch (error) {
 		console.error(`读取cf.json出错: ${error.message}`);
 	}
 
-	config_JSON.加载时间 = (performance.now() - 初始化开始时间).toFixed(2) + 'ms';
-	return config_JSON;
+	fug.加载时间 = (performance.now() - frg).toFixed(2) + 'ms';
+	return fug;
 }
-
-function 识别运营商(request) {
-	const cf = request?.cf;
-	const ASN运营商映射 = {
+function faa(fab) {
+	const cf = fab?.cf;
+	const fad = {
 		'4134': 'ct',
 		'4809': 'ct',
 		'4811': 'ct',
@@ -5853,50 +5815,48 @@ function 识别运营商(request) {
 		'56041': 'cmcc',
 		'56044': 'cmcc',
 	};
-	const 运营商关键词映射 = [
+	const fae = [
 		{ code: 'ct', pattern: /chinanet|chinatelecom|china telecom|cn2|shtel/ },
 		{ code: 'cmcc', pattern: /cmi|cmnet|chinamobile|china mobile|cmcc|mobile communications/ },
 		{ code: 'cu', pattern: /china169|china unicom|chinaunicom|cucc|cncgroup|cuii|netcom/ },
 	];
 	if (String(cf?.country || '').toLowerCase() !== 'cn') return 'cf';
-	const 组织名称 = String(cf?.asOrganization || '').toLowerCase();
-	const 命中运营商 = 运营商关键词映射.find(({ pattern }) => pattern.test(组织名称))?.code;
-	return 命中运营商 || ASN运营商映射[String(cf?.asn || '')] || 'cf';
+	const fag = String(cf?.asOrganization || '').toLowerCase();
+	const fan = fae.find(({ pattern }) => pattern.test(fag))?.code;
+	return fan || fad[String(cf?.asn || '')] || 'cf';
 }
-
-async function 生成随机IP(request, count = 16, 指定端口 = -1) {
-	const url = new URL(request.url);
-	const 查询参数运营商 = String(url.searchParams.get('cnIspCode') || '').toLowerCase();
-	const 运营商文件标识 = ['ct', 'cu', 'cmcc', 'cf'].includes(查询参数运营商) ? 查询参数运营商 : 识别运营商(request);
-	const 运营商名称映射 = {
+async function fa(fe, fl = 16, fm = -1) {
+	const fo = new URL(fe.url);
+	const fr = String(fo.searchParams.get('cnIspCode') || '').toLowerCase();
+	const ft = ['ct', 'cu', 'cmcc', 'cf'].includes(fr) ? fr : faa(fe);
+	const faq = {
 		cmcc: 'CF移动优选',
 		cu: 'CF联通优选',
 		ct: 'CF电信优选',
 		cf: 'CF官方优选',
 	};
-	const cidr_url = 运营商文件标识 === 'cf' ? `https://raw.githubusercontent.com/${特征码字典[1]}/${特征码字典[1]}/main/CF-CIDR.txt` : `https://raw.githubusercontent.com/${特征码字典[1]}/${特征码字典[1]}/main/CF-CIDR/${运营商文件标识}.txt`;
-	const cfname = 运营商名称映射[运营商文件标识] || 'CF官方优选';
-	const cfport = [443, 2053, 2083, 2087, 2096, 8443];
-	let cidrList = [];
-	try { const res = await fetch(cidr_url); cidrList = res.ok ? await ala(await res.text()) : ['104.16.0.0/13'] } catch { cidrList = ['104.16.0.0/13'] }
+	const far = ft === 'cf' ? `https://raw.githubusercontent.com/${fas[1]}/${fas[1]}/main/CF-CIDR.txt` : `https://raw.githubusercontent.com/${fas[1]}/${fas[1]}/main/CF-CIDR/${ft}.txt`;
+	const fat = faq[ft] || 'CF官方优选';
+	const fax = [443, 2053, 2083, 2087, 2096, 8443];
+	let fay = [];
+	try { const res = await fetch(far); fay = res.ok ? await ala(await res.text()) : ['104.16.0.0/13'] } catch { fay = ['104.16.0.0/13'] }
 
-	const generateRandomIPFromCIDR = (cidr) => {
-		const [baseIP, prefixLength] = cidr.split('/'), prefix = parseInt(prefixLength), hostBits = 32 - prefix;
-		const ipInt = baseIP.split('.').reduce((a, p, i) => a | (parseInt(p) << (24 - i * 8)), 0);
-		const randomOffset = Math.floor(Math.random() * Math.pow(2, hostBits));
-		const mask = (0xFFFFFFFF << hostBits) >>> 0, randomIP = (((ipInt & mask) >>> 0) + randomOffset) >>> 0;
-		return [(randomIP >>> 24) & 0xFF, (randomIP >>> 16) & 0xFF, (randomIP >>> 8) & 0xFF, randomIP & 0xFF].join('.');
+	const fcc = (fcs) => {
+		const [fda, fdr] = fcs.split('/'), prefix = parseInt(fdr), fen = 32 - prefix;
+		const feb = fda.split('.').reduce((a, p, i) => a | (parseInt(p) << (24 - i * 8)), 0);
+		const fed = Math.floor(Math.random() * Math.pow(2, fen));
+		const fet = (0xFFFFFFFF << fen) >>> 0, fee = (((feb & fet) >>> 0) + fed) >>> 0;
+		return [(fee >>> 24) & 0xFF, (fee >>> 16) & 0xFF, (fee >>> 8) & 0xFF, fee & 0xFF].join('.');
 	};
-	const randomIPs = Array.from({ length: count }, (_, index) => {
-		const ip = generateRandomIPFromCIDR(cidrList[Math.floor(Math.random() * cidrList.length)]);
-		const 目标端口 = 指定端口 === -1
-			? cfport[Math.floor(Math.random() * cfport.length)]
-			: 指定端口;
-		return `${ip}:${目标端口}#${cfname}${index + 1}`;
+	const fha = Array.from({ length: fl }, (_, fib) => {
+		const fig = fcc(fay[Math.floor(Math.random() * fay.length)]);
+		const fin = fm === -1
+			? fax[Math.floor(Math.random() * fax.length)]
+			: fm;
+		return `${fig}:${fin}#${fat}${fib + 1}`;
 	});
-	return [randomIPs, randomIPs.join('\n')];
+	return [fha, fha.join('\n')];
 }
-
 async function ala(alb) {
 	var ale = alb.replace(/[	"'\r\n]+/g, ',').replace(/,+/g, ',');
 	if (ale.charAt(0) == ',') ale = ale.slice(1);
